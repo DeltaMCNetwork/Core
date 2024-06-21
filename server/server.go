@@ -4,8 +4,6 @@ package server
 
 import (
 	"time"
-
-	"github.com/charmbracelet/log"
 )
 
 type MinecraftServer struct {
@@ -14,7 +12,9 @@ type MinecraftServer struct {
 	connPool    IConnectionPool
 	serverLoop  IServerLoop
 
-	running bool
+	running       bool
+	online        bool
+	multithreaded bool
 }
 
 func CreateMinecraftServer() *MinecraftServer {
@@ -41,14 +41,22 @@ func (server *MinecraftServer) SetConnectionPool(connPool IConnectionPool) {
 
 func (server *MinecraftServer) Init() {
 	/// please set your custom factories before calling init!!!
-	log.Info("Loading server... (v" + VERSION + ")")
+	Info("Loading server... (v" + VERSION + ")")
+}
+
+func (server *MinecraftServer) SetMojangAuth(value bool) {
+	server.online = value
+}
+
+func (server *MinecraftServer) SetMultiThreading(value bool) {
+	server.multithreaded = value
 }
 
 func (server *MinecraftServer) Start(port int) {
-	log.Info("Starting server...")
+	Info("Starting server...")
 	server.listener.Start(port, *server)
 
-	log.Info("Starting logic loop!")
+	Info("Starting logic loop!")
 
 	var lastCall = time.Now().UnixMilli()
 

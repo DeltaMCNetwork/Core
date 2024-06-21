@@ -2,8 +2,6 @@ package server
 
 import (
 	"time"
-
-	"github.com/charmbracelet/log"
 )
 
 type IServerLoop interface {
@@ -15,7 +13,7 @@ type BasicServerLoop struct {
 }
 
 func (loop *BasicServerLoop) Call(timeBetween int64) {
-	log.Info("time", timeBetween)
+	Info("Time between ticks is %dms", timeBetween)
 
 	time.Sleep(15 * time.Millisecond)
 }

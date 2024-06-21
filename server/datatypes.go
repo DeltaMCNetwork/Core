@@ -1,9 +1,10 @@
 package server
 
+import uuid "github.com/satori/go.uuid"
+
 type double float64
 
-//Last modified: 6/21/2024
-
+// Last modified: 6/21/2024
 type Vec3 struct {
 	x double
 	y double
@@ -102,4 +103,10 @@ func CreatePositionVec(vec *Vec3, yaw float32, pitch float32) *Position {
 	}
 }
 
-//Now its UUID time
+//Last modified: 6/21/2024
+
+type UUID = uuid.UUID
+
+func CreateUUID() UUID {
+	return uuid.NewV4()
+}

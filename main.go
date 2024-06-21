@@ -8,6 +8,8 @@ func main() {
 	serv := server.CreateMinecraftServer()
 
 	serv.SetListener(&server.BasicListener{})
+	serv.SetMojangAuth(true)
+	serv.SetMultiThreading(true)
 
 	serv.Init()
 	serv.Start(25565)

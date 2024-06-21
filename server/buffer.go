@@ -15,5 +15,5 @@ type IBuffer interface {
 	ReadULong() uint64
 	ReadPosition() *Position
 	ReadString() string
-	ReadUUID() uuid.UUID
+	ReadUUID()
 }
