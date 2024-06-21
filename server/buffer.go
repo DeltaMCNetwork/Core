@@ -1,7 +1,7 @@
 package server
 
 type IBuffer interface {
-	Read(count int) []byte
+	Read(count int32) []byte
 	ReadUInt8() uint8
 	ReadInt8() int8
 	ReadUInt16() uint16
@@ -34,4 +34,31 @@ type IBuffer interface {
 	WriteUUID(UUID)
 
 	GetBytes() []byte
+	GetLength() int32
+	GetPointer() int32
+}
+
+func createBasicBuffer() IBuffer {
+	return &BasicBuffer{}
+}
+
+type BasicBuffer struct {
+	IBuffer
+	data    []byte
+	pointer int32
+}
+
+func (buffer *BasicBuffer) Read(count int32) []byte {
+	data := buffer.data[buffer.pointer : buffer.pointer+count]
+	buffer.pointer += count
+
+	return data
+}
+
+func (buffer *BasicBuffer) ReadUInt8() uint8 {
+	return uint8(buffer.Read(1)[0])
+}
+
+func (buffer *BasicBuffer) ReadInt8() int8 {
+	return int8(buffer.Read(1)[0])
 }

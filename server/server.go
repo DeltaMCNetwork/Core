@@ -21,11 +21,14 @@ type MinecraftServer struct {
 
 func CreateMinecraftServer() *MinecraftServer {
 	return &MinecraftServer{
-		listener:    createBasicListener(),
-		connFactory: createBasicConnectionFactory(),
-		connPool:    createBasicConnectionPool(),
-		serverLoop:  createBasicServerLoop(),
-		running:     true,
+		listener:      createBasicListener(),
+		connFactory:   createBasicConnectionFactory(),
+		connPool:      createBasicConnectionPool(),
+		serverLoop:    createBasicServerLoop(),
+		bufferCreate:  createBasicBuffer,
+		running:       true,
+		online:        false,
+		multithreaded: false,
 	}
 }
 
