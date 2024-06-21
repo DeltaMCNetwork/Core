@@ -1,6 +1,8 @@
 package main
 
-import "org/example/server"
+import (
+	"org/example/server"
+)
 
 func main() {
 	//this is a tests file

@@ -1,0 +1,5 @@
+If buffer is at position, and polls 4 bytes
+
+bytes := buffer.bytes[pointer : pointer + 4]
+
+correct!
