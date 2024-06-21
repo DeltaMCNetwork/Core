@@ -12,6 +12,8 @@ type MinecraftServer struct {
 	connPool    IConnectionPool
 	serverLoop  IServerLoop
 
+	bufferCreate func() IBuffer
+
 	running       bool
 	online        bool
 	multithreaded bool
@@ -50,6 +52,14 @@ func (server *MinecraftServer) SetMojangAuth(value bool) {
 
 func (server *MinecraftServer) SetMultiThreading(value bool) {
 	server.multithreaded = value
+}
+
+func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
+	server.bufferCreate = f
+}
+
+func (server *MinecraftServer) CreateBuffer() IBuffer {
+	return server.bufferCreate()
 }
 
 func (server *MinecraftServer) Start(port int) {

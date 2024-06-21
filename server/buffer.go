@@ -15,5 +15,23 @@ type IBuffer interface {
 	ReadULong() uint64
 	ReadPosition() *Position
 	ReadString() string
-	ReadUUID()
+	ReadUUID() UUID
+
+	Write([]byte)
+	WriteUInt8(uint8)
+	WriteInt8(int8)
+	WriteUInt16(uint16)
+	WriteInt16(int16)
+	WriteInt(int32)
+	WriteUInt(uint32)
+	WriteVarInt(int32)
+	WriteFloat(float32)
+	WriteDouble(double)
+	WriteLong(int64)
+	WriteULong(uint64)
+	WritePosition(*Position)
+	WriteString() string
+	WriteUUID(UUID)
+
+	GetBytes() []byte
 }
