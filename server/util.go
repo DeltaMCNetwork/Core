@@ -23,3 +23,7 @@ func (timer *Timer) Reset() {
 func CreateTimer() *Timer {
 	return &Timer{time: time.Now().UnixMilli()}
 }
+
+func getTime() int64 {
+	return time.Now().UnixMilli()
+}

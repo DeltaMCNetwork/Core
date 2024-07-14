@@ -1,21 +1,19 @@
 package server
 
-import (
-	"time"
-)
-
 type IServerLoop interface {
-	Call(time int64)
+	Call(time int64, server MinecraftServer)
 }
 
 type BasicServerLoop struct {
 	IServerLoop
 }
 
-func (loop *BasicServerLoop) Call(timeBetween int64) {
+func (loop *BasicServerLoop) Call(timeBetween int64, server MinecraftServer) {
 	Info("Time between ticks is %dms", timeBetween)
 
-	time.Sleep(15 * time.Millisecond)
+	for _, element := range server.connPool.GetConnections() {
+		element.Read(server)
+	}
 }
 
 func createBasicServerLoop() IServerLoop {

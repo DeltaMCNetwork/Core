@@ -116,3 +116,18 @@ type UUID = uuid.UUID
 func CreateUUID() UUID {
 	return uuid.NewV4()
 }
+
+//Last modified: 6/22/2024
+
+type ServerResponse struct {
+}
+
+type Version struct {
+}
+
+type Message struct {
+}
+
+func CreateServerResponse(server MinecraftServer) *ServerResponse {
+	return &ServerResponse{}
+}

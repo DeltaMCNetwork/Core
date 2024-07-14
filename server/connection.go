@@ -7,6 +7,10 @@ type IConnectionFactory interface {
 }
 
 type IConnection interface {
+	Read(MinecraftServer) error
+	ReadPacket([]byte, int, MinecraftServer)
+	GetPacketMode() int
+	SetPacketMode(int)
 }
 
 type IConnectionPool interface {
@@ -33,6 +37,34 @@ func createBasicConnectionFactory() IConnectionFactory {
 type BasicConnection struct {
 	IConnection
 	conn net.TCPConn
+	mode *int
+}
+
+// Read implements IConnection.
+func (conn BasicConnection) Read(server MinecraftServer) error {
+	data := make([]byte, BUFFER_SIZE)
+
+	size, err := conn.conn.Read(data)
+
+	if err != nil || size == 0 {
+		return err
+	}
+
+	conn.ReadPacket(data, size, server)
+
+	return nil
+}
+
+func (conn BasicConnection) ReadPacket(data []byte, length int, server MinecraftServer) {
+
+}
+
+func (conn BasicConnection) GetPacketMode() int {
+	return *conn.mode
+}
+
+func (conn BasicConnection) SetPacketMode(value int) {
+	*conn.mode = value
 }
 
 type BasicConnectionPool struct {

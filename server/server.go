@@ -12,7 +12,8 @@ type MinecraftServer struct {
 	connPool    IConnectionPool
 	serverLoop  IServerLoop
 
-	bufferCreate func() IBuffer
+	bufferCreate   func() IBuffer
+	responseCreate func(MinecraftServer) *ServerResponse
 
 	running       bool
 	online        bool
@@ -21,14 +22,15 @@ type MinecraftServer struct {
 
 func CreateMinecraftServer() *MinecraftServer {
 	return &MinecraftServer{
-		listener:      createBasicListener(),
-		connFactory:   createBasicConnectionFactory(),
-		connPool:      createBasicConnectionPool(),
-		serverLoop:    createBasicServerLoop(),
-		bufferCreate:  createBasicBuffer,
-		running:       true,
-		online:        false,
-		multithreaded: false,
+		listener:       createBasicListener(),
+		connFactory:    createBasicConnectionFactory(),
+		connPool:       createBasicConnectionPool(),
+		serverLoop:     createBasicServerLoop(),
+		bufferCreate:   createBasicBuffer,
+		responseCreate: CreateServerResponse,
+		running:        true,
+		online:         false,
+		multithreaded:  false,
 	}
 }
 
@@ -76,7 +78,7 @@ func (server *MinecraftServer) Start(port int) {
 	for server.running {
 		timez := time.Now().UnixMilli() - lastCall
 		lastCall = time.Now().UnixMilli()
-		server.serverLoop.Call(timez)
+		server.serverLoop.Call(timez, *server)
 	}
 }
 
