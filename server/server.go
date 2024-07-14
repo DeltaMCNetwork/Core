@@ -68,7 +68,7 @@ func (server *MinecraftServer) CreateBuffer() IBuffer {
 }
 
 func (server *MinecraftServer) Start(port int) {
-	Info("Starting server...")
+	Info("Starting server... %d", getTime())
 	server.listener.Start(port, *server)
 
 	Info("Starting logic loop!")
