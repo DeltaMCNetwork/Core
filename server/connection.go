@@ -14,6 +14,8 @@ type IConnection interface {
 	GetConnection() *net.TCPConn
 	GetCompressionThreshold() int
 	SetCompressionThreshold(int)
+	GetPlayer() IPlayer
+	SetPlayer(IPlayer)
 }
 
 type IConnectionPool interface {
@@ -45,6 +47,15 @@ type BasicConnection struct {
 	conn      *net.TCPConn
 	mode      int
 	threshold int
+	player    IPlayer
+}
+
+func (conn *BasicConnection) SetPlayer(player IPlayer) {
+	conn.player = player
+}
+
+func (conn *BasicConnection) GetPlayer() IPlayer {
+	return conn.player
 }
 
 // Read implements IConnection.
@@ -55,23 +66,24 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 
 	if err != nil {
 		server.connPool.RemoveConnection(conn)
-
 		Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
 
 		return err
 	}
 
 	if size == 0 {
-		Info("Packet is length 0")
+		Debug("Packet is length 0")
 	}
 
 	index := 0
+	packetsRead := 1
 
 	for index < size {
+		// read var int from buffer to get packet length
 		packetLength, len := ReadVarInt(data[index:])
 
-		if int(packetLength)+index > BUFFER_SIZE {
-			extraLength := BUFFER_SIZE - (int(packetLength) + index)
+		if int(packetLength)+index >= BUFFER_SIZE {
+			extraLength := (int(packetLength) + index) - BUFFER_SIZE
 			newData := make([]byte, extraLength)
 			rest, err := conn.conn.Read(newData)
 
@@ -84,18 +96,23 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 			}
 
 			if rest != extraLength {
-				Info("Expected %d bytes, only received %d bytes.", extraLength, rest)
+				Error("Expected %d bytes, only received %d bytes.", extraLength, rest)
 			}
 
 			data = append(data, newData...)
 		}
 
-		if packetLength == 0 {
+		Debug("Reading packet #%d of sucession", packetsRead)
+
+		packetsRead++
+
+		if conn.GetPacketMode() == PacketModePlay && packetLength-int32(len) == 0 {
+			index += int(packetLength)
 			continue
 		}
 
-		packetData := data[index+len : index+int(packetLength)+len]
-		index += int(packetLength)
+		packetData := data[index+len : index+len+int(packetLength)]
+		index += int(packetLength) + len
 
 		conn.ReadPacket(packetData, int(packetLength), server)
 	}

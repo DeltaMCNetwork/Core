@@ -35,7 +35,18 @@ func (handler *ProtocolHandler) HandlePacketLogin(packetId int32, buffer IBuffer
 	case 0:
 		username := buffer.ReadString()
 
-		Info(username + " Joined your server")
+		player := createBasicPlayer(username)
+
+		if USE_PROXY {
+			uuid := buffer.ReadUUID()
+
+			player.SetUuid(uuid)
+		}
+
+		conn.SetPlayer(player)
+		// buffer
+
+		Info(player.GetUsername() + " Joined your server")
 	}
 }
 
