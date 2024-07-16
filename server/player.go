@@ -5,12 +5,18 @@ type IPlayer interface {
 	SetUsername(string)
 	GetUuid() UUID
 	SetUuid(UUID)
+	GetConnection() IConnection
+	SetConnection(IConnection)
+
+	Disconnect(string)
+	SendPacket(ServerPacket)
 }
 
 type BasicPlayer struct {
 	IPlayer
-	username string
-	uuid     UUID
+	username   string
+	uuid       UUID
+	connection IConnection
 }
 
 func createBasicPlayer(username string) IPlayer {
@@ -33,4 +39,22 @@ func (player *BasicPlayer) GetUuid() UUID {
 
 func (player *BasicPlayer) SetUuid(uuid UUID) {
 	player.uuid = uuid
+}
+
+func (player *BasicPlayer) GetConnection() IConnection {
+	return player.connection
+}
+
+func (player *BasicPlayer) SetConnection(conn IConnection) {
+	player.connection = conn
+}
+
+func (player *BasicPlayer) Disconnect(reason string) {
+	player.SendPacket(&DisconnectPacket{reason: reason})
+
+	player.connection.Remove()
+}
+
+func (player *BasicPlayer) SendPacket(packet ServerPacket) {
+	player.connection.SendPacket(packet)
 }

@@ -14,6 +14,7 @@ type MinecraftServer struct {
 	protocolHandler IProtocolHandler
 
 	bufferCreate   func() IBuffer
+	playerCreate   func(string) IPlayer
 	responseCreate func(MinecraftServer) *ServerResponse
 
 	running       bool
@@ -32,6 +33,7 @@ func CreateMinecraftServer() *MinecraftServer {
 		serverLoop:       createBasicServerLoop(),
 		protocolHandler:  createBasicProtocolHandler(),
 		bufferCreate:     createBasicBuffer,
+		playerCreate:     createBasicPlayer,
 		responseCreate:   CreateServerResponse,
 		injectionManager: CreateInjectionManager(),
 		running:          true,
@@ -71,6 +73,10 @@ func (server *MinecraftServer) SetProtocolHandler(handler IProtocolHandler) {
 
 func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
 	server.bufferCreate = f
+}
+
+func (server *MinecraftServer) SetPlayerCreator(f func(string) IPlayer) {
+	server.playerCreate = f
 }
 
 func (server *MinecraftServer) GetInjectionManager() *InjectionManager {

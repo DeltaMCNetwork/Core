@@ -1,6 +1,10 @@
 package server
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 type Timer struct {
 	time int64
@@ -66,4 +70,10 @@ func GetVarIntBytes(value int) []byte {
 	}
 
 	return data
+}
+
+func Stringify(value string, values ...any) string {
+	var fixed = strings.ReplaceAll(value, "&", "§")
+
+	return fmt.Sprintf(fixed, values...)
 }

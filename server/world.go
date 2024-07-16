@@ -1,4 +1,6 @@
 package server
 
-type IWorld struct {
+type IWorld interface {
+	GetBlock(Vec3)
+	SetBlock(Vec3)
 }

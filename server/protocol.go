@@ -17,7 +17,7 @@ func createBasicProtocolHandler() IProtocolHandler {
 }
 
 func (handler *ProtocolHandler) HandlePacket(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-	Debug("Packet mode is %d", conn.GetPacketMode())
+	//Debug("Packet mode is %d", conn.GetPacketMode())
 	switch conn.GetPacketMode() {
 	case PacketModeLogin:
 		handler.HandlePacketLogin(packetId, buffer, conn, server)
@@ -35,15 +35,29 @@ func (handler *ProtocolHandler) HandlePacketLogin(packetId int32, buffer IBuffer
 	case 0:
 		username := buffer.ReadString()
 
-		player := createBasicPlayer(username)
+		player := server.playerCreate(username)
+		player.SetConnection(conn)
+		conn.SetPlayer(player)
+
+		if len(username) == 0 {
+			player.Disconnect("Invalid username!")
+
+			return
+		}
+
+		if conn.GetProtocolVersion() != PROTOCOL_VERSION {
+			player.Disconnect(Stringify("&6deltamc.net\n&c\n&7Invalid Minecraft version!\n&8Expected %d and got %d", PROTOCOL_VERSION, conn.GetProtocolVersion()))
+
+			return
+		}
 
 		if USE_PROXY {
 			uuid := buffer.ReadUUID()
 
 			player.SetUuid(uuid)
+		} else {
+			player.SetUuid(CreateUUID())
 		}
-
-		conn.SetPlayer(player)
 		// buffer
 
 		Info(player.GetUsername() + " Joined your server")
@@ -62,13 +76,10 @@ func (handler *ProtocolHandler) HandlePacketPing(packetId int32, buffer IBuffer,
 		port := buffer.ReadUInt16()
 		nextState := buffer.ReadVarInt()
 
-		if protocolVersion != 47 {
-			Info("Incorrect version!")
-		}
-
 		Debug("Address: %s Port: %d State: %d", serverAddress, port, nextState)
 		Debug("Client Protocol is Version %d", protocolVersion)
 
+		conn.SetProtocolVersion(int(protocolVersion))
 		conn.SetPacketMode(int(nextState))
 	}
 }

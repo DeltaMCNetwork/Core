@@ -16,6 +16,12 @@ type IConnection interface {
 	SetCompressionThreshold(int)
 	GetPlayer() IPlayer
 	SetPlayer(IPlayer)
+	SendPacket(ServerPacket)
+	GetMinecraftServer() *MinecraftServer
+	SetMinecraftServer(*MinecraftServer)
+	GetProtocolVersion() int
+	SetProtocolVersion(int)
+	Remove()
 }
 
 type IConnectionPool interface {
@@ -35,6 +41,7 @@ func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, serve
 		conn:      conn,
 		mode:      PacketModePing,
 		threshold: 0,
+		server:    server,
 	}, server)
 }
 
@@ -48,6 +55,16 @@ type BasicConnection struct {
 	mode      int
 	threshold int
 	player    IPlayer
+	server    *MinecraftServer
+	protocol  int
+}
+
+func (conn *BasicConnection) SetProtocolVersion(version int) {
+	conn.protocol = version
+}
+
+func (conn *BasicConnection) GetProtocolVersion() int {
+	return conn.protocol
 }
 
 func (conn *BasicConnection) SetPlayer(player IPlayer) {
@@ -65,7 +82,7 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 	size, err := conn.conn.Read(data)
 
 	if err != nil {
-		server.connPool.RemoveConnection(conn)
+		conn.Remove()
 		Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
 
 		return err
@@ -88,21 +105,20 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 			rest, err := conn.conn.Read(newData)
 
 			if err != nil {
-				server.connPool.RemoveConnection(conn)
-
-				Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
+				conn.Remove()
 
 				return err
 			}
 
 			if rest != extraLength {
 				Error("Expected %d bytes, only received %d bytes.", extraLength, rest)
+				conn.Remove()
 			}
 
 			data = append(data, newData...)
 		}
 
-		Debug("Reading packet #%d of sucession", packetsRead)
+		//Debug("Reading packet #%d of sucession", packetsRead)
 
 		packetsRead++
 
@@ -118,6 +134,40 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 	}
 
 	return nil
+}
+
+func (conn *BasicConnection) SendPacket(packet ServerPacket) {
+	buf := packet.Write(conn.server.CreateBuffer())
+
+	data := buf.GetBytes()
+	newBuf := conn.server.CreateBuffer()
+
+	length := len(data) + 1
+	Info("Length of packet is %d, and ID is %d", length, packet.GetPacketId(conn))
+
+	newBuf.WriteVarInt(int32(length))
+	newBuf.WriteVarInt(int32(packet.GetPacketId(conn)))
+	newBuf.Write(data)
+
+	_, err := conn.conn.Write(newBuf.GetBytes())
+
+	if err != nil {
+		conn.Remove()
+		Info("Client disconnected: %s", err.Error())
+	}
+}
+
+func (conn *BasicConnection) Remove() {
+	conn.conn.Close()
+	conn.server.connPool.RemoveConnection(conn)
+}
+
+func (conn *BasicConnection) GetMinecraftServer() *MinecraftServer {
+	return conn.server
+}
+
+func (conn *BasicConnection) SetMinecraftServer(server *MinecraftServer) {
+	conn.server = server
 }
 
 func (conn *BasicConnection) GetConnection() *net.TCPConn {
@@ -143,7 +193,7 @@ func (conn *BasicConnection) ReadPacket(data []byte, length int, server *Minecra
 	}
 
 	packetId := buf.ReadVarInt()
-	Info("PacketId is %d and length is %d", packetId, length)
+	//Info("PacketId is %d and length is %d", packetId, length)
 
 	server.protocolHandler.HandlePacket(packetId, buf, conn, server)
 }

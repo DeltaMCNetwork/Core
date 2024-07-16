@@ -125,9 +125,17 @@ type ServerResponse struct {
 type Version struct {
 }
 
-type Message struct {
-}
-
 func CreateServerResponse(server MinecraftServer) *ServerResponse {
 	return &ServerResponse{}
+}
+
+//Last modified: 7/16/2024
+
+type Message struct {
+	Text          string `json:"text"`
+	Bold          *bool  `json:"bold,boolean,omitempty"`
+	Italic        *bool  `json:"italic,boolean,omitempty"`
+	Underlined    *bool  `json:"underlined,boolean,omitempty"`
+	Strikethrough *bool  `json:"strikethrough,boolean,omitempty"`
+	Obfuscated    *bool  `json:"obfuscated,boolean,omitempty"`
 }
