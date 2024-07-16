@@ -14,6 +14,11 @@ type injecter struct {
 type IEvent interface {
 }
 
+type CancellableEvent struct {
+	IEvent
+	cancelled bool
+}
+
 func CreateInjectionManager() *InjectionManager {
 	return &InjectionManager{
 		injectors: make(map[string][]*injecter, 0),
@@ -30,7 +35,7 @@ func (manager *InjectionManager) Register(event interface{}) {
 	})
 }
 
-func (manager *InjectionManager) Post(event IEvent) {
+func (manager *InjectionManager) Post(event IEvent) bool {
 	if event == nil {
 		Error("Event was nil!")
 	}
@@ -43,6 +48,14 @@ func (manager *InjectionManager) Post(event IEvent) {
 	for _, inj := range injections {
 		inj.action.Call(values)
 	}
+
+	cancelledValue := reflect.ValueOf(event).Elem().FieldByName("cancelled")
+
+	if cancelledValue.IsValid() {
+		return cancelledValue.Bool()
+	}
+
+	return false
 }
 
 //test event
@@ -54,4 +67,8 @@ type InitializationEvent struct {
 
 type ServerTickEvent struct {
 	Count int
+}
+
+type PacketReceivedEvent struct {
+	CancellableEvent
 }
