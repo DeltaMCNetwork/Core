@@ -36,7 +36,7 @@ func getTime() int {
 	return int(time.Now().UnixMilli())
 }
 
-func ReadVarInt(data []byte) int32 {
+func ReadVarInt(data []byte) (int32, int) {
 	var num int
 	var res int32
 
@@ -54,7 +54,7 @@ func ReadVarInt(data []byte) int32 {
 		}
 	}
 
-	return res
+	return res, num
 }
 
 func GetVarIntBytes(value int) []byte {
@@ -64,4 +64,6 @@ func GetVarIntBytes(value int) []byte {
 		data = append(data, byte(value&127|128))
 		value = value >> 7
 	}
+
+	return data
 }

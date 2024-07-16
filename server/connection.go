@@ -10,8 +10,10 @@ type IConnection interface {
 	Read(*MinecraftServer) error
 	ReadPacket([]byte, int, *MinecraftServer)
 	GetPacketMode() int
-	SetPacketMode(*int)
+	SetPacketMode(int)
 	GetConnection() *net.TCPConn
+	GetCompressionThreshold() int
+	SetCompressionThreshold(int)
 }
 
 type IConnectionPool interface {
@@ -27,8 +29,10 @@ type BasicConnectionFactory struct {
 }
 
 func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) {
-	server.connPool.AddConnection(BasicConnection{
-		conn: conn,
+	server.connPool.AddConnection(&BasicConnection{
+		conn:      conn,
+		mode:      PacketModePing,
+		threshold: 0,
 	}, server)
 }
 
@@ -38,12 +42,13 @@ func createBasicConnectionFactory() IConnectionFactory {
 
 type BasicConnection struct {
 	IConnection
-	conn *net.TCPConn
-	mode *int
+	conn      *net.TCPConn
+	mode      int
+	threshold int
 }
 
 // Read implements IConnection.
-func (conn BasicConnection) Read(server *MinecraftServer) error {
+func (conn *BasicConnection) Read(server *MinecraftServer) error {
 	data := make([]byte, BUFFER_SIZE)
 
 	size, err := conn.conn.Read(data)
@@ -60,31 +65,77 @@ func (conn BasicConnection) Read(server *MinecraftServer) error {
 		Info("Packet is length 0")
 	}
 
-	conn.ReadPacket(data, size, server)
+	index := 0
+
+	for index < size {
+		packetLength, len := ReadVarInt(data[index:])
+
+		if int(packetLength)+index > BUFFER_SIZE {
+			extraLength := BUFFER_SIZE - (int(packetLength) + index)
+			newData := make([]byte, extraLength)
+			rest, err := conn.conn.Read(newData)
+
+			if err != nil {
+				server.connPool.RemoveConnection(conn)
+
+				Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
+
+				return err
+			}
+
+			if rest != extraLength {
+				Info("Expected %d bytes, only received %d bytes.", extraLength, rest)
+			}
+
+			data = append(data, newData...)
+		}
+
+		if packetLength == 0 {
+			continue
+		}
+
+		packetData := data[index+len : index+int(packetLength)+len]
+		index += int(packetLength)
+
+		conn.ReadPacket(packetData, int(packetLength), server)
+	}
 
 	return nil
 }
 
-func (conn BasicConnection) GetConnection() *net.TCPConn {
+func (conn *BasicConnection) GetConnection() *net.TCPConn {
 	return conn.conn
 }
 
-func (conn BasicConnection) ReadPacket(data []byte, length int, server *MinecraftServer) {
-	Info("Packet length is %d", length)
+func (conn *BasicConnection) SetCompressionThreshold(value int) {
+	conn.threshold = value
+}
+
+func (conn *BasicConnection) GetCompressionThreshold() int {
+	return conn.threshold
+}
+
+func (conn *BasicConnection) ReadPacket(data []byte, length int, server *MinecraftServer) {
+	//Info("Packet length is %d", length)
 
 	buf := server.CreateBuffer()
 	buf.SetData(data)
 
-	if USE_COMPRESSION && *conn.mode == PacketModePlay {
-
+	if USE_COMPRESSION && conn.mode == PacketModePlay {
+		Info("Compression enabled")
 	}
+
+	packetId := buf.ReadVarInt()
+	Info("PacketId is %d and length is %d", packetId, length)
+
+	server.protocolHandler.HandlePacket(packetId, buf, conn, server)
 }
 
-func (conn BasicConnection) GetPacketMode() int {
-	return *conn.mode
+func (conn *BasicConnection) GetPacketMode() int {
+	return conn.mode
 }
 
-func (conn BasicConnection) SetPacketMode(value *int) {
+func (conn *BasicConnection) SetPacketMode(value int) {
 	conn.mode = value
 }
 

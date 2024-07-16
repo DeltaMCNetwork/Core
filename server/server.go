@@ -7,10 +7,11 @@ import (
 )
 
 type MinecraftServer struct {
-	listener    IListener
-	connFactory IConnectionFactory
-	connPool    IConnectionPool
-	serverLoop  IServerLoop
+	listener        IListener
+	connFactory     IConnectionFactory
+	connPool        IConnectionPool
+	serverLoop      IServerLoop
+	protocolHandler IProtocolHandler
 
 	bufferCreate   func() IBuffer
 	responseCreate func(MinecraftServer) *ServerResponse
@@ -29,6 +30,7 @@ func CreateMinecraftServer() *MinecraftServer {
 		connFactory:      createBasicConnectionFactory(),
 		connPool:         createBasicConnectionPool(),
 		serverLoop:       createBasicServerLoop(),
+		protocolHandler:  createBasicProtocolHandler(),
 		bufferCreate:     createBasicBuffer,
 		responseCreate:   CreateServerResponse,
 		injectionManager: CreateInjectionManager(),
@@ -61,6 +63,10 @@ func (server *MinecraftServer) SetMojangAuth(value bool) {
 
 func (server *MinecraftServer) SetMultiThreading(value bool) {
 	server.multithreaded = value
+}
+
+func (server *MinecraftServer) SetProtocolHandler(handler IProtocolHandler) {
+	server.protocolHandler = handler
 }
 
 func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
