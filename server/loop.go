@@ -1,8 +1,8 @@
 package server
 
 type IServerLoop interface {
-	Call(time int64, server MinecraftServer)
-	Tick(time int64, server MinecraftServer)
+	Call(time int64, server *MinecraftServer)
+	Tick(time int64, server *MinecraftServer)
 }
 
 type BasicServerLoop struct {
@@ -10,7 +10,7 @@ type BasicServerLoop struct {
 	timer *Timer
 }
 
-func (loop *BasicServerLoop) Call(timeBetween int64, server MinecraftServer) {
+func (loop *BasicServerLoop) Call(timeBetween int64, server *MinecraftServer) {
 	//Info("Time between Loop is %dms", timeBetween)
 
 	//loop stuff
@@ -26,8 +26,14 @@ func (loop *BasicServerLoop) Call(timeBetween int64, server MinecraftServer) {
 	}
 }
 
-func (loop *BasicServerLoop) Tick(time int64, server MinecraftServer) {
-	Info("Time passed between server ticks: %d", time)
+func (loop *BasicServerLoop) Tick(time int64, server *MinecraftServer) {
+	//Info("Time passed between server ticks: %d", time)
+	//Info("Tick count: %d", server.ticks)
+	server.ticks++
+
+	server.injectionManager.Post(&ServerTickEvent{
+		Count: server.ticks,
+	})
 
 	loop.timer.Reset()
 }

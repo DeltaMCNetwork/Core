@@ -1,4 +1,4 @@
-module org/example
+module net/deltamc
 
 go 1.22
 

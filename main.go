@@ -1,7 +1,7 @@
 package main
 
 import (
-	"org/example/server"
+	"net/deltamc/server"
 )
 
 func main() {

@@ -44,6 +44,7 @@ type IBuffer interface {
 	WriteULong(uint64)
 	WriteVarLong(int64)
 	WritePosition(*Position)
+	WriteVec3(Vec3)
 	WriteString(string)
 	WriteUUID(UUID)
 
@@ -286,7 +287,7 @@ func (buffer *BasicBuffer) WriteULong(value uint64) {
 func (buffer *BasicBuffer) WritePosition(pos *Position) {
 	vec := pos.GetVec3()
 
-	buffer.WriteULong(((uint64(vec.x) & 0x3FFFFFF) << 38) | ((uint64(pos.pos.z) & 0x3FFFFFF) << 12) | (uint64(pos.yaw) & 0xFFF))
+	buffer.WriteULong(((uint64(vec.x) & 0x3FFFFFF) << 38) | ((uint64(vec.z) & 0x3FFFFFF) << 12) | (uint64(vec.y) & 0xFFF))
 }
 
 func (buffer *BasicBuffer) WriteString(value string) {
@@ -322,4 +323,8 @@ func (buffer *BasicBuffer) GetLength() int32 {
 
 func (buffer *BasicBuffer) GetPointer() int32 {
 	return buffer.pointer
+}
+
+func (buffer *BasicBuffer) WriteVec3(vec Vec3) {
+	buffer.WriteULong(((uint64(vec.x) & 0x3FFFFFF) << 38) | ((uint64(vec.z) & 0x3FFFFFF) << 12) | (uint64(vec.y) & 0xFFF))
 }

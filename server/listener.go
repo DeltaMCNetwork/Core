@@ -6,7 +6,7 @@ import (
 )
 
 type IListener interface {
-	Start(int, MinecraftServer)
+	Start(int, *MinecraftServer)
 	Stop()
 }
 
@@ -18,7 +18,7 @@ type BasicListener struct {
 
 // Stop implements IListener.
 
-func (listener *BasicListener) Start(port int, server MinecraftServer) {
+func (listener *BasicListener) Start(port int, server *MinecraftServer) {
 	address, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", port))
 
 	if err != nil {
@@ -34,11 +34,13 @@ func (listener *BasicListener) Start(port int, server MinecraftServer) {
 		for server.running {
 			connection, err := socket.AcceptTCP()
 
+			Info("Connection received from %s", connection.RemoteAddr().String())
+
 			if err != nil {
 				continue
 			}
 
-			server.connFactory.CreateConnection(*connection, server)
+			server.connFactory.CreateConnection(connection, server)
 		}
 	}()
 }

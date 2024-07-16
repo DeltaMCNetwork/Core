@@ -18,19 +18,23 @@ type MinecraftServer struct {
 	running       bool
 	online        bool
 	multithreaded bool
+	ticks         int
+
+	injectionManager *InjectionManager
 }
 
 func CreateMinecraftServer() *MinecraftServer {
 	return &MinecraftServer{
-		listener:       createBasicListener(),
-		connFactory:    createBasicConnectionFactory(),
-		connPool:       createBasicConnectionPool(),
-		serverLoop:     createBasicServerLoop(),
-		bufferCreate:   createBasicBuffer,
-		responseCreate: CreateServerResponse,
-		running:        true,
-		online:         false,
-		multithreaded:  false,
+		listener:         createBasicListener(),
+		connFactory:      createBasicConnectionFactory(),
+		connPool:         createBasicConnectionPool(),
+		serverLoop:       createBasicServerLoop(),
+		bufferCreate:     createBasicBuffer,
+		responseCreate:   CreateServerResponse,
+		injectionManager: CreateInjectionManager(),
+		running:          true,
+		online:           false,
+		multithreaded:    false,
 	}
 }
 
@@ -63,22 +67,28 @@ func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
 	server.bufferCreate = f
 }
 
+func (server *MinecraftServer) GetInjectionManager() *InjectionManager {
+	return server.injectionManager
+}
+
 func (server *MinecraftServer) CreateBuffer() IBuffer {
 	return server.bufferCreate()
 }
 
 func (server *MinecraftServer) Start(port int) {
 	Info("Starting server... %d", getTime())
-	server.listener.Start(port, *server)
+	server.listener.Start(port, server)
 
 	Info("Starting logic loop!")
 
 	var lastCall = time.Now().UnixMilli()
 
+	test(server)
+
 	for server.running {
 		timez := time.Now().UnixMilli() - lastCall
 		lastCall = time.Now().UnixMilli()
-		server.serverLoop.Call(timez, *server)
+		server.serverLoop.Call(timez, server)
 	}
 }
 
