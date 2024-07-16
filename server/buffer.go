@@ -48,9 +48,11 @@ type IBuffer interface {
 	WriteString(string)
 	WriteUUID(UUID)
 
+	SetData([]byte)
 	GetBytes() []byte
 	GetLength() int32
 	GetPointer() int32
+	SetPointer(int32)
 }
 
 func createBasicBuffer() IBuffer {
@@ -327,4 +329,12 @@ func (buffer *BasicBuffer) GetPointer() int32 {
 
 func (buffer *BasicBuffer) WriteVec3(vec Vec3) {
 	buffer.WriteULong(((uint64(vec.x) & 0x3FFFFFF) << 38) | ((uint64(vec.z) & 0x3FFFFFF) << 12) | (uint64(vec.y) & 0xFFF))
+}
+
+func (buffer *BasicBuffer) SetData(data []byte) {
+	buffer.data = data
+}
+
+func (buffer *BasicBuffer) SetPointer(pointer int32) {
+	buffer.pointer = pointer
 }

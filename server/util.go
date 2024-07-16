@@ -35,3 +35,33 @@ func CreateTimer() *Timer {
 func getTime() int {
 	return int(time.Now().UnixMilli())
 }
+
+func ReadVarInt(data []byte) int32 {
+	var num int
+	var res int32
+
+	for {
+		val := data[num]
+		tmp := int32(val)
+		res |= (tmp & 0x7F) << uint(num*7)
+
+		if num++; num > 5 {
+			panic("Value too big!")
+		}
+
+		if tmp&0x80 != 0x80 {
+			break
+		}
+	}
+
+	return res
+}
+
+func GetVarIntBytes(value int) []byte {
+	data := make([]byte, 0)
+
+	for (value & -128) != 0 {
+		data = append(data, byte(value&127|128))
+		value = value >> 7
+	}
+}

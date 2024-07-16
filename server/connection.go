@@ -71,6 +71,13 @@ func (conn BasicConnection) GetConnection() *net.TCPConn {
 
 func (conn BasicConnection) ReadPacket(data []byte, length int, server *MinecraftServer) {
 	Info("Packet length is %d", length)
+
+	buf := server.CreateBuffer()
+	buf.SetData(data)
+
+	if USE_COMPRESSION && *conn.mode == PacketModePlay {
+
+	}
 }
 
 func (conn BasicConnection) GetPacketMode() int {
