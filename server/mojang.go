@@ -48,7 +48,8 @@ func CreateMojangAuthenticator() *MojangAuthenticator {
 
 func (ma *MojangAuthenticator) Authenticate(player IPlayer, server *MinecraftServer, secret []byte) *AuthenticationResult {
 	// Authenticate player with Mojang servers
-	resp, err := ma.httpClient.Get(url + player.GetUsername() + "&serverId=" + makeHash(secret, server) + "&ip=")
+
+	resp, err := ma.httpClient.Get(url + player.GetUsername() + "&server sdsId=" + makeHash(secret, server) + "&ip=" + player.GetIP())
 
 	authResult := &AuthenticationResult{}
 
@@ -77,11 +78,7 @@ func (ma *MojangAuthenticator) Authenticate(player IPlayer, server *MinecraftSer
 		return authResult
 	}
 
-	fmt.Println(authResult.Result)
-
-	//wait lemme try smthn rq
-	//wher eis other error
-	// keypair
+	fmt.Println(authResult)
 
 	return authResult
 }

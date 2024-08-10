@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"net/deltamc/server/component"
 	"net/deltamc/server/crypto"
 )
 
@@ -23,6 +24,10 @@ func (request *ServerEncryptionRequest) GetPacketId(conn IConnection) int {
 }
 
 func (request *ServerEncryptionRequest) Write(buf IBuffer) {
+	// SERVER ID IS FIRST
+
+	buf.WriteString("")
+
 	buf.WriteVarInt(int32(request.PublicKey.Len))
 	buf.Write(request.PublicKey.Key)
 	buf.WriteVarInt(VERIFY_TOKEN_LENGTH)
@@ -31,17 +36,17 @@ func (request *ServerEncryptionRequest) Write(buf IBuffer) {
 
 type ServerDisconnect struct {
 	ServerPacket
-	Reason *Message // read the write code
+	Reason *component.TextComponent // read the write code
 }
 
-func CreateServerDisconnect(reason string) *ServerDisconnect {
+func CreateServerDisconnect(text *component.TextComponent) *ServerDisconnect {
 	// the bold fields are unused in the client protocol
 	// the text components don't use that data
 	// the client renders it using the & signs
 	// well use the formatting color codes
 
 	return &ServerDisconnect{
-		Reason: &Message{Text: reason},
+		Reason: text,
 	}
 }
 

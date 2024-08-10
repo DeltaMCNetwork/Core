@@ -1,16 +1,16 @@
 package server
 
 type IWorld interface {
-	GetBlock(Vec3) IBlock
-	SetBlock(Vec3, IBlock)
+	GetBlock(Vec3) *Block
+	SetBlock(Vec3, *Block)
 	GetChunk(Vec2) IChunk
 	GetGenerator() IGenerator
 	SetGenerator(IGenerator)
 }
 
 type IChunk interface {
-	GetBlock(Vec3) IBlock
-	SetBlock(Vec3, IBlock)
+	GetBlock(Vec3) *Block
+	SetBlock(Vec3, *Block)
 }
 
 type IGenerator interface {
@@ -31,12 +31,12 @@ type BasicChunk struct {
 	metadata []uint16
 }
 
-func (chunk *BasicChunk) GetBlock(pos Vec3) IBlock {
+func (chunk *BasicChunk) GetBlock(pos Vec3) *Block {
 	index := int(pos.x + 16*pos.z + 16*16*pos.y)
 
 	if index > 0 && index < len(chunk.blocks) {
-		return &BasicBlock{
-			id: chunk.blocks[index],
+		return &Block{
+			material: materials.FromId(int32(chunk.blocks[index])),
 		}
 	}
 

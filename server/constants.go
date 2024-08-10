@@ -6,7 +6,6 @@ const PROTOCOL_VERSION = 47
 const PROTOCOL_NAME = "Moincraft " + VERSION
 const BUFFER_SIZE = 2048
 const USE_COMPRESSION = false
-const USE_ENCRYPTION = true
 const USE_PROXY = false
 const VERIFY_TOKEN_LENGTH = 4
 

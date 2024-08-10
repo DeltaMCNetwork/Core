@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"fmt"
 )
 
 const (
@@ -21,7 +22,6 @@ type PublicKey struct {
 }
 
 func NewKeypair() *Keypair {
-
 	privateKey, err := rsa.GenerateKey(rand.Reader, BitSize)
 	if err != nil {
 		panic("error generting private key " + err.Error())
@@ -40,13 +40,14 @@ func NewKeypair() *Keypair {
 	}
 }
 
-func (k *Keypair) Decrypt(bytearr []byte) error {
-	decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, k.Private, bytearr)
+func (k *Keypair) Decrypt(bytearr []byte) ([]byte, error) {
+	decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, k.Private, bytearr) //
+
+	fmt.Printf("Length of decrypted is %d\n", len(decrypted))
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	bytearr = decrypted
-
-	return nil
+	return decrypted, nil
 }

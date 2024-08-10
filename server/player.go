@@ -1,5 +1,10 @@
 package server
 
+import (
+	"net/deltamc/server/component"
+	"strings"
+)
+
 type IPlayer interface {
 	GetUsername() string
 	SetUsername(string)
@@ -7,8 +12,9 @@ type IPlayer interface {
 	SetUuid(UUID)
 	GetConnection() IConnection
 	SetConnection(IConnection)
+	GetIP() string
 
-	Disconnect(string)
+	Disconnect(*component.TextComponent)
 	SendPacket(ServerPacket)
 }
 
@@ -23,6 +29,13 @@ func createBasicPlayer(username string) IPlayer {
 	return &BasicPlayer{
 		username: username,
 	}
+}
+
+func (player *BasicPlayer) GetIP() string {
+	ipStr := player.GetConnection().GetIP()
+	indexOf := strings.Index(ipStr, ":")
+
+	return ipStr[:indexOf]
 }
 
 func (player *BasicPlayer) GetUsername() string {
@@ -49,8 +62,8 @@ func (player *BasicPlayer) SetConnection(conn IConnection) {
 	player.connection = conn
 }
 
-func (player *BasicPlayer) Disconnect(reason string) {
-	player.SendPacket(CreateServerDisconnect(reason))
+func (player *BasicPlayer) Disconnect(text *component.TextComponent) {
+	player.SendPacket(CreateServerDisconnect(text))
 
 	player.connection.Remove()
 }

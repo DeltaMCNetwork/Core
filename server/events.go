@@ -1,6 +1,9 @@
 package server
 
-import "reflect"
+import (
+	"net/deltamc/server/status"
+	"reflect"
+)
 
 type InjectionManager struct {
 	injectors map[string][]*injecter
@@ -71,4 +74,8 @@ type ServerTickEvent struct {
 
 type PacketReceivedEvent struct {
 	CancellableEvent
+}
+
+type ServerListPingEvent struct {
+	Response *status.Response
 }

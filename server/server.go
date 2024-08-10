@@ -26,7 +26,6 @@ type MinecraftServer struct {
 	keypair           *crypto.Keypair
 
 	running       bool
-	online        bool
 	multithreaded bool
 	ticks         int
 
@@ -45,12 +44,12 @@ func CreateMinecraftServer() *MinecraftServer {
 		playerCreate:      createBasicPlayer,
 		responseCreate:    CreateServerResponse,
 		verificationToken: GenerateVerificationToken,
+		authenticator:     nil,
 		mapper:            CreateProtocolTable(),
 		keypair:           crypto.NewKeypair(),
 		injectionManager:  CreateInjectionManager(),
-		materialRegistry:  CreateMaterialRegistry(),
+		materialRegistry:  materials,
 		running:           true,
-		online:            false,
 		multithreaded:     false,
 	}
 }
@@ -70,10 +69,8 @@ func (server *MinecraftServer) SetConnectionPool(connPool IConnectionPool) {
 func (server *MinecraftServer) Init() {
 	/// please set your custom factories before calling init!!!
 	Info("Loading server... (v" + VERSION + ")")
-}
 
-func (server *MinecraftServer) SetMojangAuth(value bool) {
-	server.online = value
+	server.materialRegistry.Load("")
 }
 
 func (server *MinecraftServer) SetMultiThreading(value bool) {

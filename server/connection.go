@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"net"
 	"net/deltamc/server/crypto"
+	"strings"
 )
 
 type IConnectionFactory interface {
@@ -30,6 +31,7 @@ type IConnection interface {
 	GetProtocolVersion() int
 	SetProtocolVersion(int)
 	EnableEncryption(secret []byte)
+	SetIP(string)
 	GetIP() string
 	Remove()
 }
@@ -58,6 +60,10 @@ func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, serve
 		connected:        true,
 	}
 
+	parts := strings.Split(conn.RemoteAddr().String(), ":")
+
+	connection.ip = parts[0]
+
 	server.connPool.AddConnection(connection, server)
 
 	connection.StartListening(server)
@@ -76,6 +82,7 @@ type BasicConnection struct {
 	server    *MinecraftServer
 	protocol  int
 	connected bool
+	ip        string
 
 	// encryption stuff
 	encrptionEnabled bool
@@ -292,7 +299,11 @@ func (conn *BasicConnection) encrypt(bytearr []byte) {
 }
 
 func (conn *BasicConnection) GetIP() string {
-	return conn.conn.RemoteAddr().String()
+	return conn.ip
+}
+
+func (conn *BasicConnection) SetIP(ip string) {
+	conn.ip = ip
 }
 
 type BasicConnectionPool struct {

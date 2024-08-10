@@ -130,11 +130,6 @@ func CreateServerResponse(server *MinecraftServer) *ServerResponse {
 }
 
 //Last modified: 7/16/2024
-
-type Message struct {
-	Text string `json:"text"`
-}
-
 //Last modified: 7/16/2024
 
 type Vec2 struct {
