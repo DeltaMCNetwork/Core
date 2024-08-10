@@ -128,6 +128,8 @@ func (server *MinecraftServer) Start(port int) {
 	Info("Starting server... %d", getTime())
 	server.listener.Start(port, server)
 
+	test(server)
+
 	Info("Starting logic loop!")
 
 	var lastCall = time.Now().UnixMilli()

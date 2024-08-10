@@ -52,13 +52,13 @@ func (mat *MaterialRegistry) Load(path string) {
 	//}
 }
 
-func registerMaterial(matReg *MaterialRegistry, values map[string]interface{}) {
-	//material := &Material{}
-	//
-	//material.MaxStackSize = int8(values["stackSize"].(float64))
-	//material.DisplayName = values["displayName"].(string)
-	//material.MaxDurability = int16(values["maxDurability"].(float64))
-	//material.Id = int32(values["id"].(float64))
-	//material.RegistryName = values["name"].(string)
+//func registerMaterial(matReg *MaterialRegistry, values map[string]interface{}) {
+//material := &Material{}
+//
+//material.MaxStackSize = int8(values["stackSize"].(float64))
+//material.DisplayName = values["displayName"].(string)
+//material.MaxDurability = int16(values["maxDurability"].(float64))
+//material.Id = int32(values["id"].(float64))
+//material.RegistryName = values["name"].(string)
 
-}
+//}
