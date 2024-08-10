@@ -14,7 +14,7 @@ const VERIFY_TOKEN_LENGTH = 4
 // thats why i dont use vars outside of structs
 
 const (
-	PacketModePing = iota
+	PacketModeHandshake = iota
 	PacketModeStatus
 	PacketModeLogin
 	PacketModePlay

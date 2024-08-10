@@ -1,6 +1,9 @@
 package server
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"fmt"
+	uuid "github.com/satori/go.uuid"
+)
 
 type ProtocolFunc = func(IBuffer, IConnection, *MinecraftServer) bool
 
@@ -34,6 +37,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 			conn.GetPlayer().Disconnect("bro ur bad")
 		}
 	case PacketModeLogin:
+		fmt.Println("holy shit login")
 		switch id {
 		case 0x00: // Login Start
 			name := buffer.ReadString()
@@ -74,8 +78,16 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 		}
 	case PacketModeStatus:
 		break
-	case PacketModePing:
-		break
+	case PacketModeHandshake:
+		packet := NewClientHandshake()
+		packet.Read(buffer)
+
+		if packet.NextState > 0 && packet.NextState < 3 {
+			// check if it's a valid protocol version
+			conn.SetPacketMode(packet.NextState)
+		} else {
+			conn.Remove()
+		}
 	}
 }
 

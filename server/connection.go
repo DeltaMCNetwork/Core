@@ -14,8 +14,8 @@ type IConnectionFactory interface {
 type IConnection interface {
 	Read(*MinecraftServer) error
 	ReadPacket([]byte, int, *MinecraftServer)
-	GetPacketMode() int
-	SetPacketMode(int)
+	GetPacketMode() byte
+	SetPacketMode(byte)
 	GetConnection() *net.TCPConn
 	GetCompressionThreshold() int
 	SetCompressionThreshold(int)
@@ -45,7 +45,7 @@ type BasicConnectionFactory struct {
 func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) {
 	server.connPool.AddConnection(&BasicConnection{
 		conn:             conn,
-		mode:             PacketModePing,
+		mode:             PacketModeHandshake,
 		threshold:        0,
 		server:           server,
 		encrptionEnabled: false,
@@ -59,7 +59,7 @@ func createBasicConnectionFactory() IConnectionFactory {
 type BasicConnection struct {
 	IConnection
 	conn      *net.TCPConn
-	mode      int
+	mode      byte
 	threshold int
 	player    IPlayer
 	server    *MinecraftServer
@@ -177,7 +177,9 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 	newBuf.WriteVarInt(int32(packet.GetPacketId(conn)))
 	newBuf.Write(data)
 
-	conn.encrypt(newBuf.GetBytes())
+	if conn.encrptionEnabled {
+		conn.encrypt(newBuf.GetBytes())
+	}
 
 	_, err := conn.conn.Write(newBuf.GetBytes())
 
@@ -228,11 +230,11 @@ func (conn *BasicConnection) ReadPacket(data []byte, length int, server *Minecra
 	server.mapper.HandlePacket(packetId, buf, conn, server)
 }
 
-func (conn *BasicConnection) GetPacketMode() int {
+func (conn *BasicConnection) GetPacketMode() byte {
 	return conn.mode
 }
 
-func (conn *BasicConnection) SetPacketMode(value int) {
+func (conn *BasicConnection) SetPacketMode(value byte) {
 	conn.mode = value
 }
 
