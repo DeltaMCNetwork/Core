@@ -3,19 +3,25 @@ package server
 /// REGION: MinecraftServer
 
 import (
+	"net/deltamc/server/crypto"
 	"time"
 )
 
 type MinecraftServer struct {
-	listener        IListener
-	connFactory     IConnectionFactory
-	connPool        IConnectionPool
-	serverLoop      IServerLoop
-	protocolHandler IProtocolHandler
+	listener      IListener
+	connFactory   IConnectionFactory
+	connPool      IConnectionPool
+	serverLoop    IServerLoop
+	packetHandler IPacketHandler
+	authenticator IAuthenticator
+	mapper        *ProtocolTable
 
 	bufferCreate   func() IBuffer
 	playerCreate   func(string) IPlayer
-	responseCreate func(MinecraftServer) *ServerResponse
+	responseCreate func(*MinecraftServer) *ServerResponse
+
+	verificationToken func() []byte
+	keypair           *crypto.Keypair
 
 	running       bool
 	online        bool
@@ -23,22 +29,27 @@ type MinecraftServer struct {
 	ticks         int
 
 	injectionManager *InjectionManager
+	materialRegistry *MaterialRegistry
 }
 
 func CreateMinecraftServer() *MinecraftServer {
 	return &MinecraftServer{
-		listener:         createBasicListener(),
-		connFactory:      createBasicConnectionFactory(),
-		connPool:         createBasicConnectionPool(),
-		serverLoop:       createBasicServerLoop(),
-		protocolHandler:  createBasicProtocolHandler(),
-		bufferCreate:     createBasicBuffer,
-		playerCreate:     createBasicPlayer,
-		responseCreate:   CreateServerResponse,
-		injectionManager: CreateInjectionManager(),
-		running:          true,
-		online:           false,
-		multithreaded:    false,
+		listener:          createBasicListener(),
+		connFactory:       createBasicConnectionFactory(),
+		connPool:          createBasicConnectionPool(),
+		serverLoop:        createBasicServerLoop(),
+		packetHandler:     CreatePacketHandler(),
+		bufferCreate:      createBasicBuffer,
+		playerCreate:      createBasicPlayer,
+		responseCreate:    CreateServerResponse,
+		verificationToken: GenerateVerificationToken,
+		mapper:            CreateProtocolTable(),
+		keypair:           crypto.NewKeypair(),
+		injectionManager:  CreateInjectionManager(),
+		materialRegistry:  CreateMaterialRegistry(),
+		running:           true,
+		online:            false,
+		multithreaded:     false,
 	}
 }
 
@@ -57,6 +68,8 @@ func (server *MinecraftServer) SetConnectionPool(connPool IConnectionPool) {
 func (server *MinecraftServer) Init() {
 	/// please set your custom factories before calling init!!!
 	Info("Loading server... (v" + VERSION + ")")
+
+	server.materialRegistry.Load("")
 }
 
 func (server *MinecraftServer) SetMojangAuth(value bool) {
@@ -67,8 +80,24 @@ func (server *MinecraftServer) SetMultiThreading(value bool) {
 	server.multithreaded = value
 }
 
-func (server *MinecraftServer) SetProtocolHandler(handler IProtocolHandler) {
-	server.protocolHandler = handler
+func (server *MinecraftServer) SetProtocolHandler(handler IPacketHandler) {
+	server.packetHandler = handler
+}
+
+func (server *MinecraftServer) SetKeypair(keypair *crypto.Keypair) {
+	server.keypair = keypair
+}
+
+func (server *MinecraftServer) GetKeypair() *crypto.Keypair {
+	return server.keypair
+}
+
+func (server *MinecraftServer) NewVerificationToken() []byte {
+	return server.verificationToken()
+}
+
+func (server *MinecraftServer) SetVerificationTokenFactory(f func() []byte) {
+	server.verificationToken = f
 }
 
 func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
@@ -77,6 +106,14 @@ func (server *MinecraftServer) SetBufferCreator(f func() IBuffer) {
 
 func (server *MinecraftServer) SetPlayerCreator(f func(string) IPlayer) {
 	server.playerCreate = f
+}
+
+func (server *MinecraftServer) GetAuthenticator() IAuthenticator {
+	return server.authenticator
+}
+
+func (server *MinecraftServer) SetAuthenticator(authenticator IAuthenticator) {
+	server.authenticator = authenticator
 }
 
 func (server *MinecraftServer) GetInjectionManager() *InjectionManager {

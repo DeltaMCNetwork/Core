@@ -1,89 +1,93 @@
 package server
 
-type IProtocolHandler interface {
-	HandlePacket(int32, IBuffer, IConnection, *MinecraftServer)
-	HandlePacketStatus(int32, IBuffer, IConnection, *MinecraftServer)
-	HandlePacketPlay(int32, IBuffer, IConnection, *MinecraftServer)
-	HandlePacketLogin(int32, IBuffer, IConnection, *MinecraftServer)
-	HandlePacketPing(int32, IBuffer, IConnection, *MinecraftServer)
+import uuid "github.com/satori/go.uuid"
+
+type ProtocolFunc = func(IBuffer, IConnection, *MinecraftServer) bool
+
+type ProtocolTable struct {
+	funcs map[int32]ProtocolFunc
+	index int32
 }
 
-type ProtocolHandler struct {
-	IProtocolHandler
+func CreateProtocolTable() *ProtocolTable {
+	table := &ProtocolTable{
+		index: 0,
+		funcs: make(map[int32]ProtocolFunc, 0),
+	}
+
+	initTable(table)
+
+	return table
 }
 
-func createBasicProtocolHandler() IProtocolHandler {
-	return &ProtocolHandler{}
+func initTable(table *ProtocolTable) {
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+
+		return true
+	})
 }
 
-func (handler *ProtocolHandler) HandlePacket(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-	//Debug("Packet mode is %d", conn.GetPacketMode())
+func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
 	switch conn.GetPacketMode() {
-	case PacketModeLogin:
-		handler.HandlePacketLogin(packetId, buffer, conn, server)
-	case PacketModeStatus:
-		handler.HandlePacketStatus(packetId, buffer, conn, server)
-	case PacketModePing:
-		handler.HandlePacketPing(packetId, buffer, conn, server)
 	case PacketModePlay:
-		handler.HandlePacketPlay(packetId, buffer, conn, server)
+		if !table.funcs[id](buffer, conn, server) {
+			conn.GetPlayer().Disconnect("bro ur bad")
+		}
+	case PacketModeLogin:
+		switch id {
+		case 0x00: // Login Start
+			name := buffer.ReadString()
+			player := server.playerCreate(name)
+			player.SetConnection(conn)
+			conn.SetPlayer(player)
+
+			if server.GetAuthenticator() != nil {
+				// online mode enbabled
+				conn.SendPacket(CreateServerEncryptionRequest(server.GetKeypair().Public, GenerateVerificationToken()))
+			} else {
+				player.SetUuid(uuid.FromStringOrNil("Offline:" + player.GetUsername()))
+				completeLogin(player)
+			}
+		case 0x01: // Encryption Request
+			sharedSecret := buffer.ReadByteArray()
+			verifyToken := buffer.ReadByteArray()
+
+			server.GetKeypair().Decrypt(sharedSecret)
+			server.GetKeypair().Decrypt(verifyToken)
+
+			conn.EnableEncryption(sharedSecret)
+
+			//TODO: where to put verify token
+
+			go func() {
+				player := conn.GetPlayer()
+				authResult := server.GetAuthenticator().Authenticate(player, server)
+				switch authResult.Result {
+				case AuthSuccess:
+					completeLogin(player)
+				case AuthFail:
+					player.Disconnect("buy minecraft poor ass")
+				case AuthError:
+					player.Disconnect("Something went wrong while authentication you")
+				}
+			}()
+		}
+	case PacketModeStatus:
+		break
+	case PacketModePing:
+		break
 	}
 }
 
-func (handler *ProtocolHandler) HandlePacketLogin(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-	switch packetId {
-	case 0:
-		username := buffer.ReadString()
-
-		player := server.playerCreate(username)
-		player.SetConnection(conn)
-		conn.SetPlayer(player)
-
-		if len(username) == 0 {
-			player.Disconnect("Invalid username!")
-
-			return
-		}
-
-		if conn.GetProtocolVersion() != PROTOCOL_VERSION {
-			player.Disconnect(Stringify("&6deltamc.net\n&c\n&7Invalid Minecraft version!\n&8Expected %d and got %d", PROTOCOL_VERSION, conn.GetProtocolVersion()))
-
-			return
-		}
-
-		if USE_PROXY {
-			uuid := buffer.ReadUUID()
-
-			player.SetUuid(uuid)
-		} else {
-			player.SetUuid(CreateUUID())
-		}
-		// buffer
-
-		Info(player.GetUsername() + " Joined your server")
-	}
+func (table *ProtocolTable) IotaRegister(f ProtocolFunc) {
+	table.funcs[table.index] = f
+	table.index++
 }
 
-func (handler *ProtocolHandler) HandlePacketStatus(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-
+func (table *ProtocolTable) Register(index int32, f ProtocolFunc) {
+	table.funcs[index] = f
 }
 
-func (handler *ProtocolHandler) HandlePacketPing(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-	switch packetId {
-	case 0:
-		protocolVersion := buffer.ReadVarInt()
-		serverAddress := buffer.ReadString()
-		port := buffer.ReadUInt16()
-		nextState := buffer.ReadVarInt()
-
-		Debug("Address: %s Port: %d State: %d", serverAddress, port, nextState)
-		Debug("Client Protocol is Version %d", protocolVersion)
-
-		conn.SetProtocolVersion(int(protocolVersion))
-		conn.SetPacketMode(int(nextState))
-	}
-}
-
-func (handler *ProtocolHandler) HandlePacketPlay(packetId int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
-
+func completeLogin(player IPlayer) {
+	player.SendPacket(CreateServerLoginSuccess(player.GetUuid().String(), player.GetUsername()))
 }

@@ -50,7 +50,7 @@ func (player *BasicPlayer) SetConnection(conn IConnection) {
 }
 
 func (player *BasicPlayer) Disconnect(reason string) {
-	player.SendPacket(&DisconnectPacket{reason: reason})
+	player.SendPacket(CreateServerDisconnect(reason))
 
 	player.connection.Remove()
 }

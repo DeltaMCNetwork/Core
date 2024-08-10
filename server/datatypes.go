@@ -125,17 +125,35 @@ type ServerResponse struct {
 type Version struct {
 }
 
-func CreateServerResponse(server MinecraftServer) *ServerResponse {
+func CreateServerResponse(server *MinecraftServer) *ServerResponse {
 	return &ServerResponse{}
 }
 
 //Last modified: 7/16/2024
 
 type Message struct {
-	Text          string `json:"text"`
-	Bold          *bool  `json:"bold,boolean,omitempty"`
-	Italic        *bool  `json:"italic,boolean,omitempty"`
-	Underlined    *bool  `json:"underlined,boolean,omitempty"`
-	Strikethrough *bool  `json:"strikethrough,boolean,omitempty"`
-	Obfuscated    *bool  `json:"obfuscated,boolean,omitempty"`
+	Text string `json:"text"`
+}
+
+//Last modified: 7/16/2024
+
+type Vec2 struct {
+	x int
+	y int
+}
+
+func (vec *Vec2) GetX() int {
+	return vec.x
+}
+
+func (vec *Vec2) SetX(x int) {
+	vec.x = x
+}
+
+func (vec *Vec2) GetY() int {
+	return vec.y
+}
+
+func (vec *Vec2) SetY(y int) {
+	vec.y = y
 }

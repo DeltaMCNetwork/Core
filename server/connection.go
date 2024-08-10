@@ -1,6 +1,11 @@
 package server
 
-import "net"
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"net"
+	"net/deltamc/server/crypto"
+)
 
 type IConnectionFactory interface {
 	CreateConnection(*net.TCPConn, *MinecraftServer)
@@ -21,6 +26,7 @@ type IConnection interface {
 	SetMinecraftServer(*MinecraftServer)
 	GetProtocolVersion() int
 	SetProtocolVersion(int)
+	EnableEncryption(secret []byte)
 	Remove()
 }
 
@@ -38,10 +44,11 @@ type BasicConnectionFactory struct {
 
 func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) {
 	server.connPool.AddConnection(&BasicConnection{
-		conn:      conn,
-		mode:      PacketModePing,
-		threshold: 0,
-		server:    server,
+		conn:             conn,
+		mode:             PacketModePing,
+		threshold:        0,
+		server:           server,
+		encrptionEnabled: false,
 	}, server)
 }
 
@@ -57,6 +64,11 @@ type BasicConnection struct {
 	player    IPlayer
 	server    *MinecraftServer
 	protocol  int
+
+	// encryption stuff
+	encrptionEnabled bool
+	encrypter        cipher.Stream
+	decrypter        cipher.Stream
 }
 
 func (conn *BasicConnection) SetProtocolVersion(version int) {
@@ -81,6 +93,9 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 
 	size, err := conn.conn.Read(data)
 
+	// get rid of the unused space
+	data = data[:size]
+
 	if err != nil {
 		conn.Remove()
 		Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
@@ -90,6 +105,12 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 
 	if size == 0 {
 		Debug("Packet is length 0")
+	}
+
+	if conn.encrptionEnabled {
+		// encryption enabled
+
+		conn.decrypt(data)
 	}
 
 	index := 0
@@ -115,6 +136,12 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 				conn.Remove()
 			}
 
+			if conn.encrptionEnabled {
+				// encryption enabled
+
+				conn.decrypt(data)
+			}
+
 			data = append(data, newData...)
 		}
 
@@ -137,7 +164,8 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 }
 
 func (conn *BasicConnection) SendPacket(packet ServerPacket) {
-	buf := packet.Write(conn.server.CreateBuffer())
+	buf := conn.server.CreateBuffer()
+	packet.Write(buf)
 
 	data := buf.GetBytes()
 	newBuf := conn.server.CreateBuffer()
@@ -148,6 +176,8 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 	newBuf.WriteVarInt(int32(length))
 	newBuf.WriteVarInt(int32(packet.GetPacketId(conn)))
 	newBuf.Write(data)
+
+	conn.encrypt(newBuf.GetBytes())
 
 	_, err := conn.conn.Write(newBuf.GetBytes())
 
@@ -195,7 +225,7 @@ func (conn *BasicConnection) ReadPacket(data []byte, length int, server *Minecra
 	packetId := buf.ReadVarInt()
 	//Info("PacketId is %d and length is %d", packetId, length)
 
-	server.protocolHandler.HandlePacket(packetId, buf, conn, server)
+	server.mapper.HandlePacket(packetId, buf, conn, server)
 }
 
 func (conn *BasicConnection) GetPacketMode() int {
@@ -204,6 +234,28 @@ func (conn *BasicConnection) GetPacketMode() int {
 
 func (conn *BasicConnection) SetPacketMode(value int) {
 	conn.mode = value
+}
+
+func (conn *BasicConnection) EnableEncryption(secret []byte) {
+	block, err := aes.NewCipher(secret)
+	if err != nil {
+		Error("Error creating cipher: %s", err.Error())
+		conn.Remove()
+		return
+	}
+
+	conn.decrypter = crypto.NewCFB8Decrypter(block, secret)
+	conn.encrypter = crypto.NewCFB8Encrypter(block, secret)
+
+	conn.encrptionEnabled = true
+}
+
+func (conn *BasicConnection) decrypt(bytearr []byte) {
+	conn.decrypter.XORKeyStream(bytearr, bytearr)
+}
+
+func (conn *BasicConnection) encrypt(bytearr []byte) {
+	conn.encrypter.XORKeyStream(bytearr, bytearr)
 }
 
 type BasicConnectionPool struct {

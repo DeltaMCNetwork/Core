@@ -26,6 +26,7 @@ type IBuffer interface {
 	ReadPosition() *Position
 	ReadVec3() *Vec3
 	ReadString() string
+	ReadByteArray() []byte
 	ReadUUID() UUID
 
 	Write([]byte)
@@ -46,6 +47,7 @@ type IBuffer interface {
 	WritePosition(*Position)
 	WriteVec3(Vec3)
 	WriteString(string)
+	WriteByteArray(bytes []byte)
 	WriteUUID(UUID)
 
 	SetData([]byte)
@@ -180,6 +182,9 @@ func (buffer *BasicBuffer) ReadVec3() *Vec3 {
 	v := buffer.ReadLong()
 	vec := &Vec3{}
 
+	// might do problems idk
+	// should be fine
+
 	vec.SetX(double(v >> 38))
 	vec.SetY(double(v >> 26 & 0xFFF))
 	vec.SetZ(double(v << 38 >> 38))
@@ -313,6 +318,10 @@ func (buffer *BasicBuffer) WriteUUID(uuid UUID) {
 	}
 
 	buffer.Write(bytes)
+}
+
+func (buffer *BasicBuffer) ReadByteArray() []byte {
+	return buffer.Read(buffer.ReadVarInt())
 }
 
 func (buffer *BasicBuffer) GetBytes() []byte {
