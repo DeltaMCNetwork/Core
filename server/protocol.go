@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -65,7 +66,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 
 			go func() {
 				player := conn.GetPlayer()
-				authResult := server.GetAuthenticator().Authenticate(player, server)
+				authResult := server.GetAuthenticator().Authenticate(player, server, sharedSecret)
 				switch authResult.Result {
 				case AuthSuccess:
 					completeLogin(player)
@@ -84,7 +85,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 
 		if packet.NextState > 0 && packet.NextState < 3 {
 			// check if it's a valid protocol version
-			conn.SetPacketMode(packet.NextState)
+			conn.SetPacketMode(int(packet.NextState))
 		} else {
 			conn.Remove()
 		}

@@ -4,6 +4,7 @@ package server
 
 import (
 	"net/deltamc/server/crypto"
+	"net/deltamc/server/thread"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type MinecraftServer struct {
 	packetHandler IPacketHandler
 	authenticator IAuthenticator
 	mapper        *ProtocolTable
+	serverThread  thread.Thread
 
 	bufferCreate   func() IBuffer
 	playerCreate   func(string) IPlayer
@@ -68,8 +70,6 @@ func (server *MinecraftServer) SetConnectionPool(connPool IConnectionPool) {
 func (server *MinecraftServer) Init() {
 	/// please set your custom factories before calling init!!!
 	Info("Loading server... (v" + VERSION + ")")
-
-	server.materialRegistry.Load("")
 }
 
 func (server *MinecraftServer) SetMojangAuth(value bool) {
@@ -132,12 +132,19 @@ func (server *MinecraftServer) Start(port int) {
 
 	var lastCall = time.Now().UnixMilli()
 
-	test(server)
+	//test(server)
+	server.serverThread = thread.New()
 
-	for server.running {
-		timez := time.Now().UnixMilli() - lastCall
-		lastCall = time.Now().UnixMilli()
-		server.serverLoop.Call(timez, server)
+	server.serverThread.CallNonBlock(func() {
+		for server.running {
+			timez := time.Now().UnixMilli() - lastCall
+			lastCall = time.Now().UnixMilli()
+			server.serverLoop.Call(timez, server)
+		}
+	})
+
+	for {
+		time.Sleep(time.Millisecond * 10)
 	}
 }
 

@@ -14,11 +14,14 @@ type IConnectionFactory interface {
 type IConnection interface {
 	Read(*MinecraftServer) error
 	ReadPacket([]byte, int, *MinecraftServer)
-	GetPacketMode() byte
-	SetPacketMode(byte)
+	GetPacketMode() int
+	SetPacketMode(int)
 	GetConnection() *net.TCPConn
 	GetCompressionThreshold() int
 	SetCompressionThreshold(int)
+	IsConnected() bool
+	SetConnected(bool)
+	StartListening(*MinecraftServer)
 	GetPlayer() IPlayer
 	SetPlayer(IPlayer)
 	SendPacket(ServerPacket)
@@ -27,6 +30,7 @@ type IConnection interface {
 	GetProtocolVersion() int
 	SetProtocolVersion(int)
 	EnableEncryption(secret []byte)
+	GetIP() string
 	Remove()
 }
 
@@ -43,13 +47,20 @@ type BasicConnectionFactory struct {
 }
 
 func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) {
-	server.connPool.AddConnection(&BasicConnection{
+	conn.SetReadBuffer(BUFFER_SIZE)
+
+	connection := &BasicConnection{
 		conn:             conn,
 		mode:             PacketModeHandshake,
 		threshold:        0,
 		server:           server,
 		encrptionEnabled: false,
-	}, server)
+		connected:        true,
+	}
+
+	server.connPool.AddConnection(connection, server)
+
+	connection.StartListening(server)
 }
 
 func createBasicConnectionFactory() IConnectionFactory {
@@ -59,16 +70,33 @@ func createBasicConnectionFactory() IConnectionFactory {
 type BasicConnection struct {
 	IConnection
 	conn      *net.TCPConn
-	mode      byte
+	mode      int
 	threshold int
 	player    IPlayer
 	server    *MinecraftServer
 	protocol  int
+	connected bool
 
 	// encryption stuff
 	encrptionEnabled bool
 	encrypter        cipher.Stream
 	decrypter        cipher.Stream
+}
+
+func (conn *BasicConnection) IsConnected() bool {
+	return conn.connected
+}
+
+func (conn *BasicConnection) SetConnected(value bool) {
+	conn.connected = value
+}
+
+func (conn *BasicConnection) StartListening(server *MinecraftServer) {
+	go func() {
+		for conn.IsConnected() {
+			conn.Read(server)
+		}
+	}()
 }
 
 func (conn *BasicConnection) SetProtocolVersion(version int) {
@@ -92,6 +120,8 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 	data := make([]byte, BUFFER_SIZE)
 
 	size, err := conn.conn.Read(data)
+
+	//Info("Read from client!")
 
 	// get rid of the unused space
 	data = data[:size]
@@ -177,7 +207,7 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 	newBuf.WriteVarInt(int32(packet.GetPacketId(conn)))
 	newBuf.Write(data)
 
-	if conn.encrptionEnabled {
+	if conn.encrypter != nil {
 		conn.encrypt(newBuf.GetBytes())
 	}
 
@@ -192,6 +222,7 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 func (conn *BasicConnection) Remove() {
 	conn.conn.Close()
 	conn.server.connPool.RemoveConnection(conn)
+	conn.connected = false
 }
 
 func (conn *BasicConnection) GetMinecraftServer() *MinecraftServer {
@@ -230,11 +261,11 @@ func (conn *BasicConnection) ReadPacket(data []byte, length int, server *Minecra
 	server.mapper.HandlePacket(packetId, buf, conn, server)
 }
 
-func (conn *BasicConnection) GetPacketMode() byte {
+func (conn *BasicConnection) GetPacketMode() int {
 	return conn.mode
 }
 
-func (conn *BasicConnection) SetPacketMode(value byte) {
+func (conn *BasicConnection) SetPacketMode(value int) {
 	conn.mode = value
 }
 
@@ -258,6 +289,10 @@ func (conn *BasicConnection) decrypt(bytearr []byte) {
 
 func (conn *BasicConnection) encrypt(bytearr []byte) {
 	conn.encrypter.XORKeyStream(bytearr, bytearr)
+}
+
+func (conn *BasicConnection) GetIP() string {
+	return conn.conn.RemoteAddr().String()
 }
 
 type BasicConnectionPool struct {

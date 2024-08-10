@@ -34,11 +34,11 @@ func (listener *BasicListener) Start(port int, server *MinecraftServer) {
 		for server.running {
 			connection, err := socket.AcceptTCP()
 
-			Info("Connection received from %s", connection.RemoteAddr().String())
-
 			if err != nil {
 				continue
 			}
+
+			Info("Connection received from %s", connection.RemoteAddr().String())
 
 			server.connFactory.CreateConnection(connection, server)
 		}

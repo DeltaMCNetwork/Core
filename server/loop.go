@@ -15,9 +15,9 @@ func (loop *BasicServerLoop) Call(timeBetween int64, server *MinecraftServer) {
 
 	//loop stuff
 
-	for _, element := range server.connPool.GetConnections() {
-		element.Read(server)
-	}
+	//for _, element := range server.connPool.GetConnections() {
+	//	element.Read(server)
+	//}
 
 	//end loop stuff
 

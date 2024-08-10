@@ -4,6 +4,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -32,7 +34,7 @@ type Properties struct {
 }
 
 type IAuthenticator interface {
-	Authenticate(IPlayer, *MinecraftServer) *AuthenticationResult
+	Authenticate(IPlayer, *MinecraftServer, []byte) *AuthenticationResult
 }
 
 type MojangAuthenticator struct {
@@ -44,29 +46,44 @@ func CreateMojangAuthenticator() *MojangAuthenticator {
 	return &MojangAuthenticator{httpClient: http.DefaultClient}
 }
 
-func (ma *MojangAuthenticator) Authenticate(player IPlayer, server *MinecraftServer) *AuthenticationResult {
+func (ma *MojangAuthenticator) Authenticate(player IPlayer, server *MinecraftServer, secret []byte) *AuthenticationResult {
 	// Authenticate player with Mojang servers
-	result, err := ma.httpClient.Get(url + player.GetUsername())
+	resp, err := ma.httpClient.Get(url + player.GetUsername() + "&serverId=" + makeHash(secret, server) + "&ip=")
 
 	authResult := &AuthenticationResult{}
 
 	if err != nil {
+		Error("Error authenticating player with Mojang session server: " + err.Error())
 		authResult.Result = AuthError
 		return authResult
 	}
 
-	if result.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK {
 		authResult.Result = AuthFail
 		return authResult
 	}
 
-	json.NewDecoder(result.Body).Decode(authResult)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		Error("Error reading response from Mojang session server: " + err.Error())
+		authResult.Result = AuthError
+		return authResult
+	}
+
+	err = json.Unmarshal(data, authResult)
+	if err != nil {
+		Error("Error unmarshalling JSON response from Mojang session server: " + err.Error())
+		authResult.Result = AuthError
+		return authResult
+	}
+
+	fmt.Println(authResult.Result)
 
 	//wait lemme try smthn rq
 	//wher eis other error
 	// keypair
 
-	return nil
+	return authResult
 }
 
 var _ IAuthenticator = (*MojangAuthenticator)(nil)
