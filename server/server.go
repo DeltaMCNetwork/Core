@@ -137,7 +137,7 @@ func (server *MinecraftServer) Start(port int) {
 	for server.running {
 		timez := time.Now().UnixMilli() - lastCall
 		lastCall = time.Now().UnixMilli()
-		server.serverLoop.Call(timez, server)
+		server.serverLoop.Tick(timez, server)
 	}
 }
 

@@ -31,13 +31,13 @@ func initTable(table *ProtocolTable) {
 }
 
 func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnection, server *MinecraftServer) {
+	fmt.Println("bruh")
 	switch conn.GetPacketMode() {
 	case PacketModePlay:
 		if !table.funcs[id](buffer, conn, server) {
 			conn.GetPlayer().Disconnect("bro ur bad")
 		}
 	case PacketModeLogin:
-		fmt.Println("holy shit login")
 		switch id {
 		case 0x00: // Login Start
 			name := buffer.ReadString()

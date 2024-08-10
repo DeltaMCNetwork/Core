@@ -40,7 +40,10 @@ func (listener *BasicListener) Start(port int, server *MinecraftServer) {
 				continue
 			}
 
-			server.connFactory.CreateConnection(connection, server)
+			conn := server.connFactory.CreateConnection(connection, server)
+			// configuration
+
+			conn.Read(server)
 		}
 	}()
 }

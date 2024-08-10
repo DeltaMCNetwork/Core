@@ -3,16 +3,17 @@ package server
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"io"
 	"net"
 	"net/deltamc/server/crypto"
 )
 
 type IConnectionFactory interface {
-	CreateConnection(*net.TCPConn, *MinecraftServer)
+	CreateConnection(*net.TCPConn, *MinecraftServer) IConnection
 }
 
 type IConnection interface {
-	Read(*MinecraftServer) error
+	Read()
 	ReadPacket([]byte, int, *MinecraftServer)
 	GetPacketMode() byte
 	SetPacketMode(byte)
@@ -42,14 +43,14 @@ type BasicConnectionFactory struct {
 	IConnectionFactory
 }
 
-func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) {
-	server.connPool.AddConnection(&BasicConnection{
+func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, server *MinecraftServer) IConnection {
+	return &BasicConnection{
 		conn:             conn,
 		mode:             PacketModeHandshake,
 		threshold:        0,
 		server:           server,
 		encrptionEnabled: false,
-	}, server)
+	}
 }
 
 func createBasicConnectionFactory() IConnectionFactory {
@@ -88,79 +89,72 @@ func (conn *BasicConnection) GetPlayer() IPlayer {
 }
 
 // Read implements IConnection.
-func (conn *BasicConnection) Read(server *MinecraftServer) error {
-	data := make([]byte, BUFFER_SIZE)
+func (conn *BasicConnection) Read() {
+	go func() {
+		data := make([]byte, BUFFER_SIZE)
 
-	size, err := conn.conn.Read(data)
+		size, err := conn.conn.Read(data)
 
-	// get rid of the unused space
-	data = data[:size]
+		// get rid of the unused space
+		data = data[:size]
 
-	if err != nil {
-		conn.Remove()
-		Info("Removed connection, there are now %d connections", server.connPool.GetConnectionCount())
-
-		return err
-	}
-
-	if size == 0 {
-		Debug("Packet is length 0")
-	}
-
-	if conn.encrptionEnabled {
-		// encryption enabled
-
-		conn.decrypt(data)
-	}
-
-	index := 0
-	packetsRead := 1
-
-	for index < size {
-		// read var int from buffer to get packet length
-		packetLength, len := ReadVarInt(data[index:])
-
-		if int(packetLength)+index >= BUFFER_SIZE {
-			extraLength := (int(packetLength) + index) - BUFFER_SIZE
-			newData := make([]byte, extraLength)
-			rest, err := conn.conn.Read(newData)
-
-			if err != nil {
-				conn.Remove()
-
-				return err
-			}
-
-			if rest != extraLength {
-				Error("Expected %d bytes, only received %d bytes.", extraLength, rest)
-				conn.Remove()
-			}
-
-			if conn.encrptionEnabled {
-				// encryption enabled
-
-				conn.decrypt(data)
-			}
-
-			data = append(data, newData...)
+		if err != nil {
+			conn.Remove()
+			Info("Removed connection, there are now %d connections", conn.server.connPool.GetConnectionCount())
+			return
 		}
 
-		//Debug("Reading packet #%d of sucession", packetsRead)
-
-		packetsRead++
-
-		if conn.GetPacketMode() == PacketModePlay && packetLength-int32(len) == 0 {
-			index += int(packetLength)
-			continue
+		if size == 0 {
+			Debug("Packet is length 0")
 		}
 
-		packetData := data[index+len : index+len+int(packetLength)]
-		index += int(packetLength) + len
+		if conn.encrptionEnabled {
+			// encryption enabled
 
-		conn.ReadPacket(packetData, int(packetLength), server)
-	}
+			conn.decrypt(data)
+		}
 
-	return nil
+		index := 0
+		packetsRead := 1
+
+		for index < size {
+			// read var int from buffer to get packet length
+			packetLength, len := ReadVarInt(data[index:])
+
+			if int(packetLength)+index >= BUFFER_SIZE {
+				extraLength := (int(packetLength) + index) - BUFFER_SIZE
+				newData := make([]byte, extraLength)
+				_, err := io.ReadFull(conn.conn, newData)
+
+				if err != nil {
+					Error("Error additional data: " + err.Error())
+					conn.Remove()
+					return
+				}
+
+				if conn.encrptionEnabled {
+					// encryption enabled
+					conn.decrypt(data)
+				}
+
+				data = append(data, newData...)
+			}
+
+			//Debug("Reading packet #%d of sucession", packetsRead)
+
+			packetsRead++
+
+			if conn.GetPacketMode() == PacketModePlay && packetLength-int32(len) == 0 {
+				index += int(packetLength)
+				continue
+			}
+
+			packetData := data[index+len : index+len+int(packetLength)]
+			index += int(packetLength) + len
+
+			conn.ReadPacket(packetData, int(packetLength), conn.server)
+		}
+	}()
 }
 
 func (conn *BasicConnection) SendPacket(packet ServerPacket) {
