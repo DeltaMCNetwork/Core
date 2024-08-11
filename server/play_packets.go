@@ -1,14 +1,14 @@
 package server
 
-type ClientKeepalive struct {
+type ClientKeepAlive struct {
 	KeepAliveId int32
 }
 
-func (packet *ClientKeepalive) GetPacketId(conn IConnection) int {
+func (packet *ClientKeepAlive) GetPacketId(conn IConnection) int {
 	return ClientKeepAlivePacket
 }
 
-func (packet *ClientKeepalive) Read(buffer IBuffer) {
+func (packet *ClientKeepAlive) Read(buffer IBuffer) {
 	packet.KeepAliveId = buffer.ReadVarInt()
 }
 
@@ -361,18 +361,18 @@ func (packet *ClientResourcePackStatus) GetPacketId() int {
 //
 // ══════════════════════════════════════════════════════════════════════
 
-type ServerKeepalive struct {
+type ServerKeepAlive struct {
 	KeepAliveId int32
 }
 
-func CreateServerKeepalive(id int32) *ServerKeepalive {
-	return &ServerKeepalive{KeepAliveId: id}
+func CreateServerKeepAlive(id int32) *ServerKeepAlive {
+	return &ServerKeepAlive{KeepAliveId: id}
 }
 
-func (packet *ServerKeepalive) GetPacketId(conn IConnection) int {
+func (packet *ServerKeepAlive) GetPacketId(conn IConnection) int {
 	return ClientKeepAlivePacket
 }
 
-func (packet *ServerKeepalive) Write(buffer IBuffer) {
+func (packet *ServerKeepAlive) Write(buffer IBuffer) {
 	buffer.WriteVarInt(packet.KeepAliveId)
 }

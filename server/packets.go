@@ -46,7 +46,7 @@ type IPacketHandler interface {
 type BasicPacketHandler struct {
 }
 
-func (handler *BasicPacketHandler) HandleKeepAlive(packet ClientKeepAlive, player IPlayer) {
+func (handler *BasicPacketHandler) HandleKeepAlive(packet ClientKeepalive, player IPlayer) {
 
 }
 
