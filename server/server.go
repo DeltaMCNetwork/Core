@@ -29,6 +29,8 @@ type MinecraftServer struct {
 	multithreaded bool
 	ticks         int
 
+	favicon string
+
 	injectionManager *InjectionManager
 	materialRegistry *MaterialRegistry
 }
@@ -71,6 +73,7 @@ func (server *MinecraftServer) Init() {
 	Info("Loading server... (v" + VERSION + ")")
 
 	server.materialRegistry.Load("")
+	server.favicon = loadIcon()
 }
 
 func (server *MinecraftServer) SetMultiThreading(value bool) {
@@ -87,6 +90,10 @@ func (server *MinecraftServer) SetKeypair(keypair *crypto.Keypair) {
 
 func (server *MinecraftServer) GetKeypair() *crypto.Keypair {
 	return server.keypair
+}
+
+func (server *MinecraftServer) GetFavicon() string {
+	return server.favicon
 }
 
 func (server *MinecraftServer) NewVerificationToken() []byte {
