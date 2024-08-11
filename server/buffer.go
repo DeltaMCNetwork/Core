@@ -28,7 +28,6 @@ type IBuffer interface {
 	ReadString() string
 	ReadByteArray() []byte
 	ReadUUID() UUID
-
 	Write([]byte)
 	WriteByte(byte) error
 	WriteBool(bool)
@@ -62,9 +61,13 @@ func createBasicBuffer() IBuffer {
 }
 
 type BasicBuffer struct {
-	IBuffer
 	data    []byte
 	pointer int32
+}
+
+func (buffer *BasicBuffer) WriteVarLong(i int64) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (buffer *BasicBuffer) Read(count int32) []byte {
@@ -288,7 +291,9 @@ func (buffer *BasicBuffer) WriteLong(value int64) {
 }
 
 func (buffer *BasicBuffer) WriteULong(value uint64) {
-	binary.BigEndian.AppendUint64(buffer.data, value)
+	var data [8]byte
+	binary.BigEndian.PutUint64(data[:], value)
+	buffer.Write(data[:])
 }
 
 func (buffer *BasicBuffer) WritePosition(pos *Position) {
@@ -303,13 +308,19 @@ func (buffer *BasicBuffer) WriteString(value string) {
 	buffer.Write([]byte(value))
 }
 
+func (buffer *BasicBuffer) WriteByteArray(bytes []byte) {
+	buffer.WriteVarInt(int32(len(bytes)))
+
+	buffer.Write(bytes)
+}
+
 func (buffer *BasicBuffer) WriteUUID(uuid UUID) {
 	bytes := uuid.Bytes()
 
 	msb := 0
 	lsb := 0
 
-	for i := int(0); i < 8; i++ {
+	for i := 0; i < 8; i++ {
 		msb = (msb << 0x08) | int(bytes[i]&0xFF)
 	}
 
@@ -347,3 +358,5 @@ func (buffer *BasicBuffer) SetData(data []byte) {
 func (buffer *BasicBuffer) SetPointer(pointer int32) {
 	buffer.pointer = pointer
 }
+
+var _ IBuffer = (*BasicBuffer)(nil)
