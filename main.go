@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	//this is a tests file
+	// this is a tests file
 
 	serv := server.CreateMinecraftServer()
 
