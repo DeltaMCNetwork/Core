@@ -205,6 +205,7 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 	packet.Write(buf)
 
 	data := buf.GetBytes()
+
 	newBuf := conn.server.CreateBuffer()
 
 	length := len(data) + 1
@@ -214,10 +215,9 @@ func (conn *BasicConnection) SendPacket(packet ServerPacket) {
 	newBuf.WriteVarInt(int32(packet.GetPacketId(conn)))
 	newBuf.Write(data)
 
-	if conn.encrypter != nil {
+	if conn.encrptionEnabled {
 		conn.encrypt(newBuf.GetBytes())
 	}
-
 	_, err := conn.conn.Write(newBuf.GetBytes())
 
 	if err != nil {
