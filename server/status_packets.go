@@ -6,7 +6,6 @@ import (
 )
 
 type ServerStatusResponse struct {
-	ServerPacket
 	Response *status.Response
 }
 
@@ -29,7 +28,6 @@ func (r *ServerStatusResponse) Write(buf IBuffer) {
 }
 
 type ServerStatusPong struct {
-	ServerPacket
 	Payload int64
 }
 
