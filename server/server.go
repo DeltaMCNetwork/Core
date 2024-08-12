@@ -47,7 +47,7 @@ func CreateMinecraftServer() *MinecraftServer {
 		playerCreate:      createBasicPlayer,
 		responseCreate:    CreateServerResponse,
 		verificationToken: GenerateVerificationToken,
-		authenticator:     CreateMojangAuthenticator(),
+		authenticator:     nil,
 		keepaAliveSender:  CreateBasicKeepAliveSender(),
 		mapper:            CreateProtocolTable(),
 		keypair:           crypto.NewKeypair(),
@@ -120,6 +120,10 @@ func (server *MinecraftServer) GetAuthenticator() IAuthenticator {
 
 func (server *MinecraftServer) SetAuthenticator(authenticator IAuthenticator) {
 	server.authenticator = authenticator
+}
+
+func (server *MinecraftServer) GetKeepAliveSender() IKeepAliveSender {
+	return server.keepaAliveSender
 }
 
 func (server *MinecraftServer) GetInjectionManager() *InjectionManager {
