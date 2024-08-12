@@ -51,6 +51,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 				conn.SendPacket(CreateServerEncryptionRequest(server.GetKeypair().Public, GenerateVerificationToken()))
 			} else {
 				player.SetUuid(uuid.FromStringOrNil("Offline:" + player.GetUsername()))
+				player.SetAuthenticated(true)
 				completeLogin(player)
 			}
 		case ClientEncryptionResponsePacket: // Encryption Request
@@ -63,6 +64,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 			}
 
 			sharedSecret = decrypted
+			// USE THIS
 			decVerifyToken, err := server.GetKeypair().Decrypt(verifyToken)
 
 			if err != nil {
@@ -70,6 +72,11 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 			}
 
 			verifyToken = decVerifyToken
+
+			if verifyToken == nil {
+				panic("fine")
+			}
+
 			conn.EnableEncryption(sharedSecret)
 
 			//TODO: where to put verify token
@@ -80,6 +87,7 @@ func (table *ProtocolTable) HandlePacket(id int32, buffer IBuffer, conn IConnect
 			switch authResult.Result {
 			case AuthSuccess:
 				completeLogin(player)
+				player.SetAuthenticated(true)
 			case AuthFail:
 				player.Disconnect(component.NewTextComponent("buy mineccraft poor ass").WithColor(component.Red))
 			case AuthError:

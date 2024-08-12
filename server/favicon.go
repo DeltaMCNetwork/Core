@@ -28,7 +28,6 @@ func loadIcon() string {
 	if img.Bounds().Dx() != 64 || img.Bounds().Dy() != 64 {
 		// image is not 64 x 64 px
 		panic(fmt.Sprint("Icon should be 64 x 64 pixels. Your icon size: ", img.Bounds().Dx(), " x ", img.Bounds().Dy(), " pixels!"))
-		return ""
 	}
 
 	// reset pointer

@@ -1,6 +1,7 @@
 package server
 
 type ClientKeepAlive struct {
+	ClientPacket
 	KeepAliveId int32
 }
 

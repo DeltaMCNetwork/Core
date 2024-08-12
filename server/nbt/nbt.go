@@ -17,12 +17,12 @@ const (
 )
 
 type NbtCompound struct {
-	data map[string]*any
+	data map[string]any
 }
 
 func CreateCompound() *NbtCompound {
 	return &NbtCompound{
-		data: make(map[string]*any, 0),
+		data: make(map[string]any, 0),
 	}
 }
 
@@ -70,6 +70,6 @@ func (compound *NbtCompound) GetCompound(key string) *NbtCompound {
 	return compound.data[key].(*NbtCompound)
 }
 
-func (compound *NbtCompound) GetIntArray(key string) *NbtCompound {
-	return compound.data[key].(*[]int)
+func (compound *NbtCompound) GetIntArray(key string) []int {
+	return compound.data[key].([]int)
 }

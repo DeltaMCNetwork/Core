@@ -15,5 +15,5 @@ func (handshake *ClientHandshake) Read(buf IBuffer) {
 	handshake.ProtocolVersion = int(buf.ReadVarInt())
 	handshake.ServerAddress = buf.ReadString()
 	handshake.ServerPort = buf.ReadUInt16()
-	handshake.NextState, _ = buf.ReadByte()
+	handshake.NextState = buf.ReadByte()
 }
