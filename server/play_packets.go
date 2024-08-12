@@ -1,10 +1,5 @@
 package server
 
-import (
-	"encoding/json"
-	"net/deltamc/server/component"
-)
-
 type ClientKeepAlive struct {
 	ClientPacket
 	KeepAliveId int32
@@ -419,29 +414,25 @@ func (p *ServerJoinGame) Write(buf IBuffer) {
 	buf.WriteBool(p.ReducedDebugInfo)
 }
 
-type ServerChatMessage struct {
-	JSONData *component.TextComponent
-	Position byte
+type ServerTimeUpdate struct {
+	WorldAge  int64
+	TimeOfDay int64
 }
 
-func CreateServerChatMessage(jsonData *component.TextComponent, position byte) *ServerChatMessage {
-	return &ServerChatMessage{
-		JSONData: jsonData,
-		Position: position,
+func CreateServerTimeUpdate(worldAge int64, timeOfDay int64) *ServerTimeUpdate {
+	return &ServerTimeUpdate{
+		WorldAge:  worldAge,
+		TimeOfDay: timeOfDay,
 	}
 }
 
-func (p *ServerChatMessage) GetPacketId(conn IConnection) int32 {
-	return ServerChatMessagePacket
+func (p *ServerTimeUpdate) GetPacketId(conn IConnection) int32 {
+	return ServerTimeUpdatePacket
 }
 
-func (p *ServerChatMessage) Write(buf IBuffer) {
-	data, err := json.Marshal(p.JSONData)
-	if err != nil {
-		Error("Error serializing JSON Data (TextComponent) for ServerChatMessage packet: ", err)
-		return
-	}
-
-	buf.WriteByteArray(data)
-	buf.WriteByte(p.Position)
+func (p *ServerTimeUpdate) Write(buf IBuffer) {
+	buf.WriteLong(p.WorldAge)
+	buf.WriteLong(p.TimeOfDay)
 }
+
+//TODO: Entity Equipment
