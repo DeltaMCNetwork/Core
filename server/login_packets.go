@@ -24,8 +24,6 @@ func (request *ServerEncryptionRequest) GetPacketId(conn IConnection) int {
 }
 
 func (request *ServerEncryptionRequest) Write(buf IBuffer) {
-	// SERVER ID IS FIRST
-
 	buf.WriteString("")
 
 	buf.WriteVarInt(int32(request.PublicKey.Len))
@@ -36,15 +34,10 @@ func (request *ServerEncryptionRequest) Write(buf IBuffer) {
 
 type ServerDisconnect struct {
 	ServerPacket
-	Reason *component.TextComponent // read the write code
+	Reason *component.TextComponent
 }
 
 func CreateServerDisconnect(text *component.TextComponent) *ServerDisconnect {
-	// the bold fields are unused in the client protocol
-	// the text components don't use that data
-	// the client renders it using the & signs
-	// well use the formatting color codes
-
 	return &ServerDisconnect{
 		Reason: text,
 	}
@@ -63,14 +56,10 @@ func (packet *ServerDisconnect) Write(buf IBuffer) {
 
 	if err != nil {
 		Error("Error serializing disconnect packet! %s", err.Error())
-
 		return
 	}
 
-	jsonData := string(data)
-	//Debug("JSON data is %s", jsonData)
-
-	buf.WriteString(jsonData)
+	buf.WriteByteArray(data)
 }
 
 type ServerLoginSuccess struct {

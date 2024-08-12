@@ -40,6 +40,8 @@ type IConnectionPool interface {
 	Tick(*MinecraftServer)
 	GetConnections() []IConnection
 	GetConnectionCount() int
+	GetPlayers() []IPlayer
+	GetPlayerCount() int
 	AddConnection(IConnection, *MinecraftServer)
 	RemoveConnection(IConnection)
 }
@@ -313,6 +315,24 @@ type BasicConnectionPool struct {
 
 func (pool *BasicConnectionPool) Tick(server *MinecraftServer) {
 
+}
+
+func (pool *BasicConnectionPool) GetPlayers() []IPlayer {
+	values := make([]IPlayer, 0)
+
+	for i := range pool.connections {
+		conn := pool.connections[i]
+
+		if conn.GetPlayer() != nil {
+			values = append(values, conn.GetPlayer())
+		}
+	}
+
+	return values
+}
+
+func (pool *BasicConnectionPool) GetPlayerCount() int {
+	return len(pool.GetPlayers())
 }
 
 func (pool *BasicConnectionPool) GetConnections() []IConnection {

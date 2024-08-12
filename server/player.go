@@ -12,6 +12,8 @@ type IPlayer interface {
 	SetUuid(UUID)
 	GetConnection() IConnection
 	SetConnection(IConnection)
+	IsAuthenticated() bool
+	SetAuthenticated(bool)
 	GetIP() string
 
 	Disconnect(*component.TextComponent)
@@ -20,9 +22,10 @@ type IPlayer interface {
 
 type BasicPlayer struct {
 	IPlayer
-	username   string
-	uuid       UUID
-	connection IConnection
+	username      string
+	uuid          UUID
+	connection    IConnection
+	authenticated bool
 }
 
 func createBasicPlayer(username string) IPlayer {
@@ -70,4 +73,12 @@ func (player *BasicPlayer) Disconnect(text *component.TextComponent) {
 
 func (player *BasicPlayer) SendPacket(packet ServerPacket) {
 	player.connection.SendPacket(packet)
+}
+
+func (player *BasicPlayer) IsAuthenticated() bool {
+	return player.authenticated
+}
+
+func (player *BasicPlayer) SetAuthenticated(value bool) {
+	player.authenticated = value
 }

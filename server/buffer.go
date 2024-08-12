@@ -8,8 +8,8 @@ import (
 )
 
 type IBuffer interface {
-	Read(count int32) []byte
-	ReadByte() (byte, error)
+	Read(count int) []byte
+	ReadByte() byte
 	ReadBool() bool
 	ReadUInt8() uint8
 	ReadInt8() int8
@@ -29,7 +29,7 @@ type IBuffer interface {
 	ReadByteArray() []byte
 	ReadUUID() UUID
 	Write([]byte)
-	WriteByte(byte) error
+	WriteByte(byte)
 	WriteBool(bool)
 	WriteUInt8(uint8)
 	WriteInt8(int8)
@@ -51,9 +51,9 @@ type IBuffer interface {
 
 	SetData([]byte)
 	GetBytes() []byte
-	GetLength() int32
-	GetPointer() int32
-	SetPointer(int32)
+	GetLength() int
+	GetPointer() int
+	SetPointer(int)
 }
 
 func createBasicBuffer() IBuffer {
@@ -62,27 +62,43 @@ func createBasicBuffer() IBuffer {
 
 type BasicBuffer struct {
 	data    []byte
-	pointer int32
+	pointer int
 }
 
-func (buffer *BasicBuffer) WriteVarLong(i int64) {
-	//TODO implement me
-	panic("implement me")
+func (buffer *BasicBuffer) WriteVarLong(value int64) {
+	for {
+		temp := value & 0x7F
+		value >>= 7
+
+		if value != 0 {
+			temp |= 0x80
+		}
+
+		buffer.WriteByte(byte(temp))
+
+		if value == 0 {
+			break
+		}
+	}
 }
 
-func (buffer *BasicBuffer) Read(count int32) []byte {
+func (buffer *BasicBuffer) Read(count int) []byte {
+	if buffer.pointer+count >= len(buffer.data) {
+
+	}
+
 	data := buffer.data[buffer.pointer : buffer.pointer+count]
 	buffer.pointer += count
 
 	return data
 }
 
-func (buffer *BasicBuffer) ReadByte() (byte, error) {
-	return buffer.Read(1)[0], nil
+func (buffer *BasicBuffer) ReadByte() byte {
+	return buffer.Read(1)[0]
 }
 
 func (buffer *BasicBuffer) ReadBool() bool {
-	b, _ := buffer.ReadByte()
+	b := buffer.ReadByte()
 
 	return b == 0x01
 }
@@ -116,7 +132,7 @@ func (buffer *BasicBuffer) ReadVarInt() int32 {
 	var res int32
 
 	for {
-		val, _ := buffer.ReadByte()
+		val := buffer.ReadByte()
 		tmp := int32(val)
 		res |= (tmp & 0x7F) << uint(num*7)
 
@@ -153,7 +169,7 @@ func (buffer *BasicBuffer) ReadVarLong() int64 {
 	var res int64
 
 	for {
-		val, _ := buffer.ReadByte()
+		val := buffer.ReadByte()
 		tmp := int64(val)
 		res |= (tmp & 0x7F) << uint(num*7)
 
@@ -198,7 +214,7 @@ func (buffer *BasicBuffer) ReadVec3() *Vec3 {
 func (buffer *BasicBuffer) ReadString() string {
 	length := buffer.ReadVarInt()
 
-	return string(buffer.Read(length))
+	return string(buffer.Read(int(length)))
 }
 
 func (buffer *BasicBuffer) ReadUUID() UUID {
@@ -221,10 +237,8 @@ func (buffer *BasicBuffer) WriteAll(data ...byte) {
 	buffer.data = append(buffer.data, data...)
 }
 
-func (buffer *BasicBuffer) WriteByte(data byte) error {
+func (buffer *BasicBuffer) WriteByte(data byte) {
 	buffer.data = append(buffer.data, data)
-
-	return nil
 }
 
 func (buffer *BasicBuffer) WriteBool(value bool) {
@@ -332,18 +346,18 @@ func (buffer *BasicBuffer) WriteUUID(uuid UUID) {
 }
 
 func (buffer *BasicBuffer) ReadByteArray() []byte {
-	return buffer.Read(buffer.ReadVarInt())
+	return buffer.Read(int(buffer.ReadVarInt()))
 }
 
 func (buffer *BasicBuffer) GetBytes() []byte {
 	return buffer.data
 }
 
-func (buffer *BasicBuffer) GetLength() int32 {
-	return int32(len(buffer.data))
+func (buffer *BasicBuffer) GetLength() int {
+	return len(buffer.data)
 }
 
-func (buffer *BasicBuffer) GetPointer() int32 {
+func (buffer *BasicBuffer) GetPointer() int {
 	return buffer.pointer
 }
 
@@ -355,7 +369,7 @@ func (buffer *BasicBuffer) SetData(data []byte) {
 	buffer.data = data
 }
 
-func (buffer *BasicBuffer) SetPointer(pointer int32) {
+func (buffer *BasicBuffer) SetPointer(pointer int) {
 	buffer.pointer = pointer
 }
 
