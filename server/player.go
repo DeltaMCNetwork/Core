@@ -2,10 +2,10 @@ package server
 
 import (
 	"net/deltamc/server/component"
-	"strings"
 )
 
 type IPlayer interface {
+	GetEntityId() int32
 	GetUsername() string
 	SetUsername(string)
 	GetUuid() UUID
@@ -21,7 +21,7 @@ type IPlayer interface {
 }
 
 type BasicPlayer struct {
-	IPlayer
+	entityId      int32
 	username      string
 	uuid          UUID
 	connection    IConnection
@@ -34,11 +34,12 @@ func createBasicPlayer(username string) IPlayer {
 	}
 }
 
-func (player *BasicPlayer) GetIP() string {
-	ipStr := player.GetConnection().GetIP()
-	indexOf := strings.Index(ipStr, ":")
+func (player *BasicPlayer) GetEntityId() int32 {
+	return player.entityId
+}
 
-	return ipStr[:indexOf]
+func (player *BasicPlayer) GetIP() string {
+	return player.connection.GetIP()
 }
 
 func (player *BasicPlayer) GetUsername() string {
