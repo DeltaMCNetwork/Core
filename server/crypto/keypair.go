@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"fmt"
 )
 
 const (
@@ -41,9 +40,7 @@ func NewKeypair() *Keypair {
 }
 
 func (k *Keypair) Decrypt(bytearr []byte) ([]byte, error) {
-	decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, k.Private, bytearr) //
-
-	fmt.Printf("Length of decrypted is %d\n", len(decrypted))
+	decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, k.Private, bytearr)
 
 	if err != nil {
 		return nil, err
