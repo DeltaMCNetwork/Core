@@ -47,7 +47,8 @@ type BasicPacketHandler struct {
 }
 
 func (handler *BasicPacketHandler) HandleKeepAlive(packet ClientKeepAlive, player IPlayer) {
-
+	conn := player.GetConnection()
+	conn.GetMinecraftServer().GetKeepAliveSender().ResetCounter(conn)
 }
 
 func (handler *BasicPacketHandler) HandleChatMessage(packet ClientChatMessage, player IPlayer) {
