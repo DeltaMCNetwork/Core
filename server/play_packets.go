@@ -377,3 +377,39 @@ func (packet *ServerKeepAlive) GetPacketId(conn IConnection) int {
 func (packet *ServerKeepAlive) Write(buffer IBuffer) {
 	buffer.WriteVarInt(packet.KeepAliveId)
 }
+
+type ServerJoinGame struct {
+	EntityID         int
+	Gamemode         uint8
+	Dimension        byte
+	Difficulty       uint8
+	MaxPlayers       uint8
+	LevelType        string
+	ReducedDebugInfo bool
+}
+
+func CreateServerJoinGame(entityID int, gamemode uint8, dimension byte, difficulty uint8, maxPlayers uint8, levelType string, reducedDebugInfo bool) *ServerJoinGame {
+	return &ServerJoinGame{
+		EntityID:         entityID,
+		Gamemode:         gamemode,
+		Dimension:        dimension,
+		Difficulty:       difficulty,
+		MaxPlayers:       maxPlayers,
+		LevelType:        levelType,
+		ReducedDebugInfo: reducedDebugInfo,
+	}
+}
+
+func (p *ServerJoinGame) GetPacketId(conn IConnection) int32 {
+	return ServerJoinGamePacket
+}
+
+func (p *ServerJoinGame) Write(buf IBuffer) {
+	buf.WriteInt(int32(p.EntityID))
+	buf.WriteUInt8(p.Gamemode)
+	buf.WriteByte(p.Dimension)
+	buf.WriteUInt8(p.Difficulty)
+	buf.WriteUInt8(p.MaxPlayers)
+	buf.WriteString(p.LevelType)
+	buf.WriteBool(p.ReducedDebugInfo)
+}
