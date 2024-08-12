@@ -27,6 +27,10 @@ func CreateProtocolTable() *ProtocolTable {
 
 func initTable(table *ProtocolTable) {
 	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		keepAlive := &ClientKeepAlive{}
+		keepAlive.Read(buffer)
+
+		server.packetHandler.HandleKeepAlive(*keepAlive, conn.GetPlayer())
 
 		return true
 	})

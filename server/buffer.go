@@ -83,12 +83,13 @@ func (buffer *BasicBuffer) WriteVarLong(value int64) {
 }
 
 func (buffer *BasicBuffer) Read(count int) []byte {
+	index := buffer.pointer + count
 	if buffer.pointer+count >= len(buffer.data) {
-
+		index = len(buffer.data) - 1
 	}
 
-	data := buffer.data[buffer.pointer : buffer.pointer+count]
-	buffer.pointer += count
+	data := buffer.data[buffer.pointer:index]
+	buffer.pointer = index
 
 	return data
 }

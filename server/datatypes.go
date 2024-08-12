@@ -4,7 +4,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type double float64
+type double = float64
 
 // Last modified: 6/21/2024
 type Vec3 struct {
