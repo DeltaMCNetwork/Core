@@ -145,4 +145,5 @@ func (table *ProtocolTable) Register(index int32, f ProtocolFunc) {
 func completeLogin(player IPlayer) {
 	Info("complete login")
 	player.SendPacket(CreateServerLoginSuccess(player.GetUuid().String(), player.GetUsername()))
+	player.GetConnection().SetPacketMode(PacketModePlay)
 }
