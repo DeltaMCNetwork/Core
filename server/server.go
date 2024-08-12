@@ -9,14 +9,15 @@ import (
 )
 
 type MinecraftServer struct {
-	listener      IListener
-	connFactory   IConnectionFactory
-	connPool      IConnectionPool
-	serverLoop    IServerLoop
-	packetHandler IPacketHandler
-	authenticator IAuthenticator
-	mapper        *ProtocolTable
-	serverThread  thread.Thread
+	listener         IListener
+	connFactory      IConnectionFactory
+	connPool         IConnectionPool
+	serverLoop       IServerLoop
+	packetHandler    IPacketHandler
+	authenticator    IAuthenticator
+	keepaAliveSender IKeepAliveSender
+	mapper           *ProtocolTable
+	serverThread     thread.Thread
 
 	bufferCreate   func() IBuffer
 	playerCreate   func(string) IPlayer
@@ -47,6 +48,7 @@ func CreateMinecraftServer() *MinecraftServer {
 		responseCreate:    CreateServerResponse,
 		verificationToken: GenerateVerificationToken,
 		authenticator:     nil,
+		keepaAliveSender:  CreateBasicKeepAliveSender(),
 		mapper:            CreateProtocolTable(),
 		keypair:           crypto.NewKeypair(),
 		injectionManager:  CreateInjectionManager(),
@@ -118,6 +120,10 @@ func (server *MinecraftServer) GetAuthenticator() IAuthenticator {
 
 func (server *MinecraftServer) SetAuthenticator(authenticator IAuthenticator) {
 	server.authenticator = authenticator
+}
+
+func (server *MinecraftServer) GetKeepAliveSender() IKeepAliveSender {
+	return server.keepaAliveSender
 }
 
 func (server *MinecraftServer) GetInjectionManager() *InjectionManager {

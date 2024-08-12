@@ -38,7 +38,6 @@ type IAuthenticator interface {
 }
 
 type MojangAuthenticator struct {
-	IAuthenticator
 	httpClient *http.Client
 }
 
