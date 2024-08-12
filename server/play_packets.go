@@ -1,5 +1,10 @@
 package server
 
+import (
+	"encoding/json"
+	"net/deltamc/server/component"
+)
+
 type ClientKeepAlive struct {
 	ClientPacket
 	KeepAliveId int32
@@ -412,4 +417,31 @@ func (p *ServerJoinGame) Write(buf IBuffer) {
 	buf.WriteUInt8(p.MaxPlayers)
 	buf.WriteString(p.LevelType)
 	buf.WriteBool(p.ReducedDebugInfo)
+}
+
+type ServerChatMessage struct {
+	JSONData *component.TextComponent
+	Position byte
+}
+
+func CreateServerChatMessage(jsonData *component.TextComponent, position byte) *ServerChatMessage {
+	return &ServerChatMessage{
+		JSONData: jsonData,
+		Position: position,
+	}
+}
+
+func (p *ServerChatMessage) GetPacketId(conn IConnection) int32 {
+	return ServerChatMessagePacket
+}
+
+func (p *ServerChatMessage) Write(buf IBuffer) {
+	data, err := json.Marshal(p.JSONData)
+	if err != nil {
+		Error("Error serializing JSON Data (TextComponent) for ServerChatMessage packet: ", err)
+		return
+	}
+
+	buf.WriteByteArray(data)
+	buf.WriteByte(p.Position)
 }
