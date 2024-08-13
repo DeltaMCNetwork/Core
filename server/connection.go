@@ -323,7 +323,7 @@ func (pool *BasicConnectionPool) GetPlayers() []IPlayer {
 	for i := range pool.connections {
 		conn := pool.connections[i]
 
-		if conn.GetPlayer() != nil {
+		if conn.GetPlayer() != nil /*&& conn.GetPlayer().*/{
 			values = append(values, conn.GetPlayer())
 		}
 	}

@@ -2,117 +2,71 @@ package nbt
 
 import "net/deltamc/server"
 
-func Write(tag NbtCompound, buf server.IBuffer) {
-	for key, value := range tag.data {
-		//WriteString(key, buf)
-		WriteValueTag(value, buf, key, true)
+var nbtWriters = make(map[NbtTagType]func(*NbtCompound, string, server.IBuffer, any), 0)
+
+func InitWriter() {
+	nbtWriters[TagByte] = func(nc *NbtCompound, s string, i server.IBuffer, value any) {
+		i.WriteByte(value.(byte))
+	}
+	nbtWriters[TagByteArray] = func(nc *NbtCompound, s string, i server.IBuffer, a any) {
+		i
 	}
 }
 
-func WriteValue(value any, buf server.IBuffer) {
-	WriteValueTag(value, buf, "", true)
+func writeString(name string, buf server.IBuffer) {
+	buf.WriteInt16(int16(len(name)))
+	buf.Write([]byte(name))
 }
 
-func WriteString(value string, buf server.IBuffer) {
-	buf.WriteInt16(int16(len(value)))
-	buf.Write([]byte(value))
+func Write(compound *NbtCompound, buf server.IBuffer) {
+	buf.WriteByte(TagCompound)
+	writeString(compound.name, buf)
+
+	for k, v := range compound.data {
+		tag := GetTagType(v)
+
+		switch tag {
+		case TagEnd:
+			panic("Impossible NBT encoding")
+		default:
+			buf.WriteByte(tag)
+			writeString(k, buf)
+			nbtWriters[tag](compound, k, buf, v)
+		}
+	}
+
+	buf.WriteByte(TagEnd)
 }
 
-func WriteValueTag(value any, buf server.IBuffer, name string, writeTag bool) {
-	switch val := value.(type) {
+func GetTagType(value any) NbtTagType {
+	switch value.(type) {
 	case byte:
-		buf.WriteByte(TagByte)
-		buf.WriteByte(val)
-	case int16:
-		if writeTag {
-			buf.WriteByte(TagShort)
-		}
-		buf.WriteInt16(val)
-	case uint16:
-		if writeTag {
-			buf.WriteByte(TagShort)
-		}
-		buf.WriteUInt16(val)
-	case int32:
-		if writeTag {
-			buf.WriteByte(TagInt)
-		}
-		buf.WriteInt(val)
-	case uint32:
-		if writeTag {
-			buf.WriteByte(TagInt)
-		}
-		buf.WriteUInt(val)
-	case int64:
-		if writeTag {
-			buf.WriteByte(TagLong)
-		}
-		buf.WriteLong(val)
-	case uint64:
-		if writeTag {
-			buf.WriteByte(TagLong)
-		}
-		buf.WriteULong(val)
-	case float32:
-		if writeTag {
-			buf.WriteByte(TagFloat)
-		}
-		buf.WriteFloat(val)
-	case float64:
-		if writeTag {
-			buf.WriteByte(TagFloat)
-		}
-		buf.WriteDouble(val)
+		return TagByte
 	case []byte:
-		if writeTag {
-			buf.WriteByte(TagByteArray)
-		}
-		buf.WriteInt(int32(len(val)))
-		buf.Write(val)
-	case string:
-		if writeTag {
-			buf.WriteByte(TagString)
-		}
-		buf.WriteInt16(int16(len(val)))
-		buf.Write([]byte(val))
+		return TagByteArray
 	case []int32:
-		if writeTag {
-			buf.WriteByte(TagIntArray)
-		}
-
-		buf.WriteInt(int32(len(val)))
-
-		for in := range val {
-			buf.WriteInt(val[in])
-		}
-
-		return
+		return TagIntArray
 	case []int64:
-		if writeTag {
-			buf.WriteByte(TagLongArray)
-		}
-
-		buf.WriteInt(int32(len(val)))
-
-		for in := range val {
-			buf.WriteLong(val[in])
-		}
-
-		return
-	case []any:
-		if writeTag {
-			buf.WriteByte(TagList)
-		}
-		buf.WriteInt(int32(len(val)))
-
-		for in := range val {
-			WriteValueTag(val[in], buf, "", false)
-		}
+		return TagLongArray
 	case NbtCompound:
-		if writeTag {
-			buf.WriteByte(TagCompound)
-		}
-
-		Write(val, buf)
+		return TagCompound
+	case float64:
+		return TagDouble
+	case float32:
+		return TagFloat
+	case int32:
+		return TagInt
+	case int64:
+		return TagLong
+	case string:
+		return TagString
+	case int16:
+		return TagShort
+	case bool:
+		return TagByte
+	case []NbtCompound, []int16, []float32, []float64:
+		return TagList
+	default:
+		return TagEnd
 	}
 }

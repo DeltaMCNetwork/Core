@@ -1,7 +1,9 @@
 package nbt
 
+type NbtTagType = byte
+
 const (
-	TagEnd byte = iota
+	TagEnd NbtTagType = iota
 	TagByte
 	TagShort
 	TagInt
@@ -17,10 +19,11 @@ const (
 )
 
 type NbtCompound struct {
+	name string
 	data map[string]any
 }
 
-func CreateCompound() *NbtCompound {
+func CreateCompound(name string) *NbtCompound {
 	return &NbtCompound{
 		data: make(map[string]any, 0),
 	}
@@ -76,4 +79,14 @@ func (compound *NbtCompound) GetCompound(key string) NbtCompound {
 
 func (compound *NbtCompound) GetIntArray(key string) []int {
 	return compound.data[key].([]int)
+}
+
+func (compound *NbtCompound) GetLength() int {
+	return len(compound.data)
+}
+
+// init
+func Init() {
+	InitWriter()
+	InitReader()
 }
