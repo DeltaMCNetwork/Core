@@ -1,5 +1,10 @@
 package server
 
+import (
+	"encoding/json"
+	"net/deltamc/server/component"
+)
+
 type ClientKeepAlive struct {
 	ClientPacket
 	KeepAliveId int32
@@ -65,9 +70,9 @@ func (packet *ClientPlayerMovement) Read(buffer IBuffer) {
 
 type ClientPlayerPosition struct {
 	ClientPacket
-	PosX     double
-	FeetY    double
-	PosZ     double
+	PosX     Double
+	FeetY    Double
+	PosZ     Double
 	OnGround bool
 }
 
@@ -101,9 +106,9 @@ func (packet *ClientPlayerLook) Read(buffer IBuffer) {
 
 type ClientPlayerPositionLook struct {
 	ClientPacket
-	PosX     double
-	FeetY    double
-	PosZ     double
+	PosX     Double
+	FeetY    Double
+	PosZ     Double
 	Yaw      float32
 	Pitch    float32
 	OnGround bool
@@ -412,6 +417,29 @@ func (p *ServerJoinGame) Write(buf IBuffer) {
 	buf.WriteUInt8(p.MaxPlayers)
 	buf.WriteString(p.LevelType)
 	buf.WriteBool(p.ReducedDebugInfo)
+}
+
+type ServerChatMessage struct {
+	JSONData *component.TextComponent
+	Position byte
+}
+
+func CreateServerChatMessage(jsonData *component.TextComponent, position byte) *ServerChatMessage {
+	return &ServerChatMessage{JSONData: jsonData, Position: position}
+}
+
+func (p *ServerChatMessage) GetPacketId(conn IConnection) int {
+	return ServerChatMessagePacket
+}
+
+func (p *ServerChatMessage) Write(buf IBuffer) {
+	data, err := json.Marshal(*p.JSONData)
+	if err != nil {
+		Error("Error marshalling JSON for packet ServerChatMessage")
+	}
+
+	buf.WriteByteArray(data)
+	buf.WriteByte(p.Position)
 }
 
 type ServerTimeUpdate struct {
