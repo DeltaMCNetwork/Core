@@ -16,6 +16,7 @@ type IPlayer interface {
 	SetAuthenticated(bool)
 	GetIP() string
 
+	SendMessage(*component.TextComponent)
 	Disconnect(*component.TextComponent)
 	SendPacket(ServerPacket)
 }
@@ -64,6 +65,10 @@ func (player *BasicPlayer) GetConnection() IConnection {
 
 func (player *BasicPlayer) SetConnection(conn IConnection) {
 	player.connection = conn
+}
+
+func (player *BasicPlayer) SendMessage(text *component.TextComponent) {
+	player.SendPacket(CreateServerChatMessage(text, 0))
 }
 
 func (player *BasicPlayer) Disconnect(text *component.TextComponent) {
