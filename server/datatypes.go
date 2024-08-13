@@ -4,40 +4,40 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type double = float64
+type Double = float64
 
 // Last modified: 6/21/2024
 type Vec3 struct {
-	x double
-	y double
-	z double
+	x Double
+	y Double
+	z Double
 }
 
-func (vec *Vec3) GetX() double {
+func (vec *Vec3) GetX() Double {
 	return vec.x
 }
 
-func (vec *Vec3) GetY() double {
+func (vec *Vec3) GetY() Double {
 	return vec.y
 }
 
-func (vec *Vec3) GetZ() double {
+func (vec *Vec3) GetZ() Double {
 	return vec.z
 }
 
-func (vec *Vec3) SetX(x double) {
+func (vec *Vec3) SetX(x Double) {
 	vec.x = x
 }
 
-func (vec *Vec3) SetY(y double) {
+func (vec *Vec3) SetY(y Double) {
 	vec.y = y
 }
 
-func (vec *Vec3) SetZ(z double) {
+func (vec *Vec3) SetZ(z Double) {
 	vec.z = z
 }
 
-func CreateVec3(x double, y double, z double) *Vec3 {
+func CreateVec3(x Double, y Double, z Double) *Vec3 {
 	return &Vec3{
 		x: x,
 		y: y,
@@ -89,7 +89,7 @@ func (pos *Position) SetVec3(vec *Vec3) {
 	pos.pos = vec
 }
 
-func CreatePosition(x double, y double, z double, yaw float32, pitch float32) *Position {
+func CreatePosition(x Double, y Double, z Double, yaw float32, pitch float32) *Position {
 	return &Position{
 		pos:   CreateVec3(x, y, z),
 		yaw:   yaw,
