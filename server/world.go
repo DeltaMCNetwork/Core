@@ -6,11 +6,93 @@ type IWorld interface {
 	GetChunk(Vec2) IChunk
 	GetGenerator() IGenerator
 	SetGenerator(IGenerator)
+	GetWorldBoarder() *WorldBorder
+	SetWorldBoarder(*WorldBorder)
 }
 
 type IChunk interface {
 	GetBlock(Vec3) *Block
 	SetBlock(Vec3, *Block)
+}
+
+type WorldBorder struct {
+	sendOnJoin bool
+
+	originX                Double
+	originZ                Double
+	oldRadius              Double
+	newRadius              Double // current size
+	speed                  int64
+	portalTeleportBoundary int32
+	warningTime            int32
+	warningBlocks          int32
+}
+
+func CreateWorldBorder(sendOnJoin bool, originX Double, originZ Double, oldRadius Double, newRadius Double, speed int64, portalTeleportBoundary int32, warningTime int32, warningBlocks int32) *WorldBorder {
+	return &WorldBorder{sendOnJoin: sendOnJoin,
+		originX:                originX,
+		originZ:                originZ,
+		oldRadius:              oldRadius,
+		newRadius:              newRadius,
+		speed:                  speed,
+		portalTeleportBoundary: portalTeleportBoundary,
+		warningTime:            warningTime,
+		warningBlocks:          warningBlocks,
+	}
+}
+
+// SetSize The param players is the players to update the boarder for. Leave nil to send the packet to everyone in this world. Changes will only save if it's sending to all players. Vice versa, changes will not affect the fields if the update is sent to selected players.
+func (w *WorldBorder) SetSize(size Double, players []byte) {
+	if players == nil {
+		w.oldRadius = 0
+		w.newRadius = size
+		w.speed = 0
+	}
+
+}
+
+// GetSize Returns the latest radius.
+func (w *WorldBorder) GetSize() Double {
+	return w.newRadius
+}
+
+// Lerp The param players is the players to update the boarder for. Leave nil to send the packet to everyone in this world. Changes will only save if it's sending to all players. Vice versa, changes will not affect the fields if the update is sent to selected players.
+func (w *WorldBorder) Lerp(before Double, after Double, speed int64, players []byte) {
+	if players == nil {
+		w.oldRadius = before
+		w.newRadius = after
+		w.speed = speed
+	}
+}
+
+// SetOrigin The param players is the players to update the boarder for. Leave nil to send the packet to everyone in this world. Changes will only save if it's sending to all players. Vice versa, changes will not affect the fields if the update is sent to selected players.
+func (w *WorldBorder) SetOrigin(x Double, z Double, players []byte) {
+	if players == nil {
+		w.originX = x
+		w.originZ = z
+	}
+}
+
+// SetWarningTime The param players is the players to update the boarder for. Leave nil to send the packet to everyone in this world. Changes will only save if it's sending to all players. Vice versa, changes will not affect the fields if the update is sent to selected players.
+func (w *WorldBorder) SetWarningTime(time int32, players []byte) {
+	if players == nil {
+		w.warningTime = time
+	}
+}
+
+// SetWarningBlocks The param players is the players to update the boarder for. Leave nil to send the packet to everyone in this world. Changes will only save if it's sending to all players. Vice versa, changes will not affect the fields if the update is sent to selected players.
+func (w *WorldBorder) SetWarningBlocks(blocks int32, players []byte) {
+	if players == nil {
+		w.warningBlocks = blocks
+	}
+}
+
+// SetSendOnJoin Sets whether the chunk data should be sent on player join or not.
+func (w *WorldBorder) SetSendOnJoin(shouldSend bool) {
+	if w.sendOnJoin == shouldSend {
+		// same thing
+		return
+	}
 }
 
 type IGenerator interface {
