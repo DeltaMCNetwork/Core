@@ -283,10 +283,28 @@ func (packet *ClientConfirmTransaction) Read(buffer IBuffer) {
 type ClientCreativeInventoryAction struct {
 	ClientPacket
 	Slot int16
+	Item Item
 }
 
 func (packet *ClientCreativeInventoryAction) GetPacketId() int {
 	return ClientCreativeInventoryActionPacket
+}
+
+func (packet *ClientCreativeInventoryAction) Read(buffer IBuffer) {
+	packet.Slot = buffer.ReadInt16()
+
+	itemId := buffer.ReadInt16()
+
+	if itemId != -1 {
+		packet.Item.count = buffer.ReadInt8()
+		packet.Item.metadata = buffer.ReadInt16()
+
+		nbt := buffer.ReadByte()
+		if nbt != 0 {
+			data := buffer.ReadRest()
+			packet.Item.nbt = NbtReadGzip(data, createBasicBuffer())
+		}
+	}
 }
 
 type ClientEnchantItem struct {

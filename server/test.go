@@ -1,32 +1,19 @@
 package server
 
-import "os"
-
 func test(server *MinecraftServer) {
 	//nbt test
 
 	/*nbtData*/
-	nbtData, err := os.ReadFile("resources/scoreboard.dat")
-
-	if err != nil {
-		return
+	nbt := NbtCompound{
+		"serverAliveTicks": 9499999,
+		"whatTheSigma": NbtCompound{
+			"anotherKey": NbtIntArray{
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+			},
+			"username": "freshday",
+		},
 	}
 
-	buf := server.CreateBuffer()
-	compound := NbtReadGzip(nbtData, buf)
-
-	Info(compound)
-
-	writeBuf := server.CreateBuffer()
-	NbtWrite(writeBuf, *compound)
-
-	//Info("Len of writebuf is %d", writeBuf.GetLength())
-
-	newCompound := NbtRead(writeBuf)
-
-	Info(newCompound)
-
-	data := NbtWriteGzip(server.CreateBuffer(), *newCompound)
-
-	os.WriteFile("resources/scoreboard.dat", data, 0666)
+	NbtWrite(server.CreateBuffer(), nbt)
 }
+	

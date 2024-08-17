@@ -39,6 +39,6 @@ func (b *Block) GetDrops() []*DropData {
 	return b.material.Drops
 }
 
-func (b *Block) GetAsItem(count int16) *Item {
+func (b *Block) GetAsItem(count int8) *Item {
 	return b.material.Item(count)
 }

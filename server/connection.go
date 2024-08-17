@@ -62,9 +62,8 @@ func (factory *BasicConnectionFactory) CreateConnection(conn *net.TCPConn, serve
 		connected:        true,
 	}
 
-	parts := strings.Split(conn.RemoteAddr().String(), ":")
-
-	connection.ip = parts[0]
+	indexOf := strings.Index(conn.RemoteAddr().String(), ":")
+	connection.ip = conn.RemoteAddr().String()[:indexOf]
 
 	server.connPool.AddConnection(connection, server)
 

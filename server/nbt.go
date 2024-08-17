@@ -257,18 +257,31 @@ func writeValue(buf IBuffer, tag NbtTagType, value any) {
 			buf.WriteUInt8(v)
 		case int8:
 			buf.WriteInt8(v)
+		case int:
+			buf.WriteUInt8(uint8(v))
 		}
 	case TagCompound:
 		writeWithName(buf, (value.(NbtCompound)))
 	case TagShort:
+		switch val := value.(type) {
+		case int:
+			buf.WriteInt16(int16(val))
+			return
+		}
 		buf.WriteInt16(value.(int16))
 	case TagInt:
 		switch val := value.(type) {
 		case int:
 			buf.WriteInt(int32(val))
+			return
 		}
 		buf.WriteInt(value.(int32))
 	case TagLong:
+		switch val := value.(type) {
+		case int:
+			buf.WriteLong(int64(val))
+			return
+		}
 		buf.WriteLong(value.(int64))
 	case TagFloat:
 		buf.WriteFloat(value.(float32))

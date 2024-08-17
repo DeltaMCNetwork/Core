@@ -8,22 +8,25 @@ import (
 
 type Item struct {
 	material *Material
-	metadata int8
-	count    int16
+	metadata int16
+	count    int8
+	nbt      *NbtCompound
 }
 
-func CreateItem(mat *Material, count int16) *Item {
+func CreateItem(mat *Material, count int8) *Item {
 	return &Item{
 		material: mat,
 		count:    count,
+		nbt:      &NbtCompound{},
+		metadata: mat.Metadata,
 	}
 }
 
-func (item *Item) GetMetadata() int8 {
+func (item *Item) GetMetadata() int16 {
 	return item.metadata
 }
 
-func (item *Item) SetMetadata(value int8) {
+func (item *Item) SetMetadata(value int16) {
 	item.metadata = value
 }
 
@@ -35,12 +38,16 @@ func (item *Item) SetMaterial(mat *Material) {
 	item.material = mat
 }
 
-func (item *Item) SetCount(count int16) {
+func (item *Item) SetCount(count int8) {
 	item.count = count
 }
 
-func (item *Item) GetCount() int16 {
+func (item *Item) GetCount() int8 {
 	return item.count
+}
+
+func (item *Item) GetNbt() *NbtCompound {
+	return item.nbt
 }
 
 func (item *Item) Block() *Block {
@@ -70,7 +77,7 @@ func (m *Material) Block() *Block {
 	return nil
 }
 
-func (m *Material) Item(count int16) *Item {
+func (m *Material) Item(count int8) *Item {
 	return CreateItem(m, count)
 }
 

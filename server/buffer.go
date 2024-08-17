@@ -28,6 +28,7 @@ type IBuffer interface {
 	ReadString() string
 	ReadByteArray() []byte
 	ReadUUID() UUID
+	ReadRest() []byte
 	Write([]byte)
 	WriteByte(byte)
 	WriteBool(bool)
@@ -368,6 +369,10 @@ func (buffer *BasicBuffer) SetData(data []byte) {
 
 func (buffer *BasicBuffer) SetPointer(pointer int) {
 	buffer.pointer = pointer
+}
+
+func (buffer *BasicBuffer) ReadRest() []byte {
+	return buffer.data[buffer.pointer:]
 }
 
 var _ IBuffer = (*BasicBuffer)(nil)
