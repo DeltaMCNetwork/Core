@@ -19,7 +19,7 @@ type IBuffer interface {
 	ReadUInt() uint32
 	ReadVarInt() int32
 	ReadFloat() float32
-	ReadDouble() double
+	ReadDouble() Double
 	ReadLong() int64
 	ReadULong() uint64
 	ReadVarLong() int64
@@ -39,7 +39,7 @@ type IBuffer interface {
 	WriteUInt(uint32)
 	WriteVarInt(int32)
 	WriteFloat(float32)
-	WriteDouble(double)
+	WriteDouble(Double)
 	WriteLong(int64)
 	WriteULong(uint64)
 	WriteVarLong(int64)
@@ -84,10 +84,6 @@ func (buffer *BasicBuffer) WriteVarLong(value int64) {
 
 func (buffer *BasicBuffer) Read(count int) []byte {
 	index := buffer.pointer + count
-	if buffer.pointer+count >= len(buffer.data) {
-		index = len(buffer.data) - 1
-	}
-
 	data := buffer.data[buffer.pointer:index]
 	buffer.pointer = index
 
@@ -153,8 +149,8 @@ func (buffer *BasicBuffer) ReadFloat() float32 {
 	return math.Float32frombits(binary.BigEndian.Uint32(buffer.Read(4)))
 }
 
-func (buffer *BasicBuffer) ReadDouble() double {
-	return double(math.Float64frombits(binary.BigEndian.Uint64(buffer.Read(8))))
+func (buffer *BasicBuffer) ReadDouble() Double {
+	return Double(math.Float64frombits(binary.BigEndian.Uint64(buffer.Read(8))))
 }
 
 func (buffer *BasicBuffer) ReadLong() int64 {
@@ -191,9 +187,9 @@ func (buffer *BasicBuffer) ReadPosition() *Position {
 	pos := CreateEmptyPosition()
 	vec := pos.GetVec3()
 
-	vec.SetX(double(v >> 38))
-	vec.SetY(double(v >> 26 & 0xFFF))
-	vec.SetZ(double(v << 38 >> 38))
+	vec.SetX(Double(v >> 38))
+	vec.SetY(Double(v >> 26 & 0xFFF))
+	vec.SetZ(Double(v << 38 >> 38))
 
 	return pos
 }
@@ -205,9 +201,9 @@ func (buffer *BasicBuffer) ReadVec3() *Vec3 {
 	// might do problems idk
 	// should be fine
 
-	vec.SetX(double(v >> 38))
-	vec.SetY(double(v >> 26 & 0xFFF))
-	vec.SetZ(double(v << 38 >> 38))
+	vec.SetX(Double(v >> 38))
+	vec.SetY(Double(v >> 26 & 0xFFF))
+	vec.SetZ(Double(v << 38 >> 38))
 
 	return vec
 }
@@ -261,7 +257,7 @@ func (buffer *BasicBuffer) WriteInt8(value int8) {
 }
 
 func (buffer *BasicBuffer) WriteUInt16(value uint16) {
-	binary.BigEndian.AppendUint16(buffer.data, value)
+	buffer.data = binary.BigEndian.AppendUint16(buffer.data, value)
 }
 
 func (buffer *BasicBuffer) WriteInt16(value int16) {
@@ -273,7 +269,7 @@ func (buffer *BasicBuffer) WriteInt(value int32) {
 }
 
 func (buffer *BasicBuffer) WriteUInt(value uint32) {
-	binary.BigEndian.AppendUint32(buffer.data, value)
+	buffer.data = binary.BigEndian.AppendUint32(buffer.data, value)
 }
 
 func (buffer *BasicBuffer) WriteVarInt(value int32) {
@@ -297,7 +293,7 @@ func (buffer *BasicBuffer) WriteFloat(float float32) {
 	buffer.WriteUInt(math.Float32bits(float))
 }
 
-func (buffer *BasicBuffer) WriteDouble(value double) {
+func (buffer *BasicBuffer) WriteDouble(value Double) {
 	buffer.WriteULong(math.Float64bits(float64(value)))
 }
 

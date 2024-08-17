@@ -1,23 +1,32 @@
 package server
 
+import "os"
+
 func test(server *MinecraftServer) {
-	server.injectionManager.Register(func(event *ServerTickEvent) {
-		//Info("Tick Count: %d", event.Count)
+	//nbt test
 
-		event.Count = 999
-	})
+	/*nbtData*/
+	nbtData, err := os.ReadFile("resources/scoreboard.dat")
 
-	server.injectionManager.Register(func(event *ServerTickEvent) {
-		//Info("Test %d", event.Count)
-	})
-
-	server.injectionManager.Register(func(event *PacketReceivedEvent) {
-		//Info("Received packet, cancelling.")
-
-		event.cancelled = true
-	})
-
-	if server.injectionManager.Post(&PacketReceivedEvent{}) {
-		Info("Cancelled")
+	if err != nil {
+		return
 	}
+
+	buf := server.CreateBuffer()
+	compound := NbtReadGzip(nbtData, buf)
+
+	Info(compound)
+
+	writeBuf := server.CreateBuffer()
+	NbtWrite(writeBuf, *compound)
+
+	//Info("Len of writebuf is %d", writeBuf.GetLength())
+
+	newCompound := NbtRead(writeBuf)
+
+	Info(newCompound)
+
+	data := NbtWriteGzip(server.CreateBuffer(), *newCompound)
+
+	os.WriteFile("resources/scoreboard.dat", data, 0666)
 }

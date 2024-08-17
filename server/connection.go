@@ -178,7 +178,7 @@ func (conn *BasicConnection) Read(server *MinecraftServer) error {
 			if conn.encrptionEnabled {
 				// encryption enabled
 
-				conn.decrypt(data)
+				conn.decrypt(newData)
 			}
 
 			data = append(data, newData...)
@@ -323,7 +323,7 @@ func (pool *BasicConnectionPool) GetPlayers() []IPlayer {
 	for i := range pool.connections {
 		conn := pool.connections[i]
 
-		if conn.GetPlayer() != nil /*&& conn.GetPlayer().*/{
+		if conn.GetPlayer() != nil /*&& conn.GetPlayer().*/ {
 			values = append(values, conn.GetPlayer())
 		}
 	}

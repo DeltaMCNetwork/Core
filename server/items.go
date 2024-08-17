@@ -251,12 +251,12 @@ func registerMaterial(matReg *MaterialRegistry, values map[string]interface{}) {
 
 			matReg.Materials[variMaterial.RegistryName] = variMaterial
 
-			defer Debug("Registered %s:%s:%d", variMaterial.DisplayName, variMaterial.RegistryName, variMaterial.Id)
+			//defer Debug("Registered %s:%s:%d", variMaterial.DisplayName, variMaterial.RegistryName, variMaterial.Id)
 		}
 	}
 
 	matReg.Materials[material.RegistryName] = material
 	matReg.StringMap[material.Id] = material.RegistryName
 
-	Debug("Registered %s:%s:%d", material.DisplayName, material.RegistryName, material.Id)
+	//Debug("Registered %s:%s:%d", material.DisplayName, material.RegistryName, material.Id)
 }
