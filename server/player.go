@@ -12,6 +12,10 @@ type IPlayer interface {
 	SetUuid(UUID)
 	GetConnection() IConnection
 	SetConnection(IConnection)
+	GetGamemode() Gamemode
+	SetGamemode(Gamemode)
+	GetWorld() IWorld
+	SetWorld(IWorld)
 	IsAuthenticated() bool
 	SetAuthenticated(bool)
 	GetIP() string
@@ -27,12 +31,30 @@ type BasicPlayer struct {
 	uuid          UUID
 	connection    IConnection
 	authenticated bool
+	gamemode      Gamemode
+	world         IWorld
 }
 
 func createBasicPlayer(username string) IPlayer {
 	return &BasicPlayer{
 		username: username,
 	}
+}
+
+func (player *BasicPlayer) GetWorld() IWorld {
+	return player.world
+}
+
+func (player *BasicPlayer) SetWorld(world IWorld) {
+	player.world = world
+}
+
+func (player *BasicPlayer) GetGamemode() Gamemode {
+	return player.gamemode
+}
+
+func (player *BasicPlayer) SetGamemode(mode Gamemode) {
+	player.gamemode = mode
 }
 
 func (player *BasicPlayer) GetEntityId() int32 {

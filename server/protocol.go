@@ -149,5 +149,8 @@ func (table *ProtocolTable) Register(index int32, f ProtocolFunc) {
 func completeLogin(player IPlayer) {
 	Info("complete login")
 	player.SendPacket(CreateServerLoginSuccess(player.GetUuid().String(), player.GetUsername()))
+	//player.SendPacket(CreateServerJoinGame(player.GetEntityId(), player.GetGamemode(), player.GetWorld().GetDimension(), DifficultyPeaceful, 100, "test", true))
+	player.SendPacket(CreateServerJoinGame(player.GetEntityId(), player.GetGamemode(), DimensionOverworld, DifficultyEasy, 20, "test", false))
+	player.SendPacket(CreateServerPosition(*CreateVec3(0, 0, 0)))
 	player.GetConnection().SetPacketMode(PacketModePlay)
 }

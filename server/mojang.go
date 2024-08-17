@@ -13,7 +13,7 @@ import (
 const (
 	url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username="
 
-	AuthSuccess = Result(iota)
+	AuthSuccess = Result(iota - 1)
 	AuthFail
 	AuthError
 )

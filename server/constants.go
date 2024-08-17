@@ -14,6 +14,32 @@ const KEEPALIVE_TIMEOUT_TIME = 30
 // no make it caps because every function from every part of the server is accessible
 // thats why i dont use vars outside of structs
 
+type Gamemode = uint8
+
+const (
+	GamemodeSurvival Gamemode = iota
+	GamemodeCreative
+	GamemodeAdventure
+	GamemodeSpectator
+)
+
+type DimensionType = int8
+
+const (
+	DimensionNether DimensionType = iota - 1
+	DimensionOverworld
+	DimensionEnd
+)
+
+type Difficulty = uint8
+
+const (
+	DifficultyPeaceful Difficulty = iota
+	DifficultyEasy
+	DifficultyNormal
+	DifficultyHard
+)
+
 const (
 	PacketModeHandshake = iota
 	PacketModeStatus

@@ -8,6 +8,7 @@ type IWorld interface {
 	SetGenerator(IGenerator)
 	GetWorldBoarder() *WorldBorder
 	SetWorldBoarder(*WorldBorder)
+	GetDimension() DimensionType
 }
 
 type IChunk interface {

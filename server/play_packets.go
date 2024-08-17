@@ -402,16 +402,16 @@ func (packet *ServerKeepAlive) Write(buffer IBuffer) {
 }
 
 type ServerJoinGame struct {
-	EntityID         int
-	Gamemode         uint8
-	Dimension        byte
+	EntityID         int32
+	Gamemode         Gamemode
+	Dimension        DimensionType
 	Difficulty       uint8
 	MaxPlayers       uint8
 	LevelType        string
 	ReducedDebugInfo bool
 }
 
-func CreateServerJoinGame(entityID int, gamemode uint8, dimension byte, difficulty uint8, maxPlayers uint8, levelType string, reducedDebugInfo bool) *ServerJoinGame {
+func CreateServerJoinGame(entityID int32, gamemode Gamemode, dimension DimensionType, difficulty uint8, maxPlayers uint8, levelType string, reducedDebugInfo bool) *ServerJoinGame {
 	return &ServerJoinGame{
 		EntityID:         entityID,
 		Gamemode:         gamemode,
@@ -423,14 +423,14 @@ func CreateServerJoinGame(entityID int, gamemode uint8, dimension byte, difficul
 	}
 }
 
-func (p *ServerJoinGame) GetPacketId(conn IConnection) int32 {
+func (p *ServerJoinGame) GetPacketId(conn IConnection) int {
 	return ServerJoinGamePacket
 }
 
 func (p *ServerJoinGame) Write(buf IBuffer) {
-	buf.WriteInt(int32(p.EntityID))
+	buf.WriteInt(p.EntityID)
 	buf.WriteUInt8(p.Gamemode)
-	buf.WriteByte(p.Dimension)
+	buf.WriteInt8(p.Dimension)
 	buf.WriteUInt8(p.Difficulty)
 	buf.WriteUInt8(p.MaxPlayers)
 	buf.WriteString(p.LevelType)
@@ -472,13 +472,32 @@ func CreateServerTimeUpdate(worldAge int64, timeOfDay int64) *ServerTimeUpdate {
 	}
 }
 
-func (p *ServerTimeUpdate) GetPacketId(conn IConnection) int32 {
+func (p *ServerTimeUpdate) GetPacketId(conn IConnection) int {
 	return ServerTimeUpdatePacket
 }
 
 func (p *ServerTimeUpdate) Write(buf IBuffer) {
 	buf.WriteLong(p.WorldAge)
 	buf.WriteLong(p.TimeOfDay)
+}
+
+type ServerSpawnPosition struct {
+	ServerPacket
+	Position Vec3
+}
+
+func CreateServerPosition(pos Vec3) *ServerSpawnPosition {
+	return &ServerSpawnPosition{
+		Position: pos,
+	}
+}
+
+func (p *ServerSpawnPosition) GetPacketId(conn IConnection) int {
+	return ServerSpawnPositionPacket
+}
+
+func (p *ServerSpawnPosition) Write(buf IBuffer) {
+	buf.WriteVec3(p.Position)
 }
 
 //TODO: Entity Equipment
