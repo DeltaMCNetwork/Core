@@ -29,10 +29,13 @@ func initTable(table *ProtocolTable) {
 	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
 		keepAlive := &ClientKeepAlive{}
 		keepAlive.Read(buffer)
-
-		server.packetHandler.HandleKeepAlive(*keepAlive, conn.GetPlayer())
-
+		server.packetHandler.HandleKeepAlive(keepAlive, conn.GetPlayer())
 		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientChatMessage{}
+		packet.Read(buffer)
+		server.packetHandler.HandleChatMessage(packet, conn.GetPlayer())
 	})
 }
 
