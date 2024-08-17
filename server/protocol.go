@@ -36,6 +36,151 @@ func initTable(table *ProtocolTable) {
 		packet := &ClientChatMessage{}
 		packet.Read(buffer)
 		server.packetHandler.HandleChatMessage(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientUseEntity{}
+		packet.Read(buffer)
+		server.packetHandler.HandleUseEntity(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerMovement{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerMovement(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerPosition{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerPosition(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerLook{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerLook(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerPositionLook{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerPositionLook(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerDigging{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerDigging(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerBlockPlacement{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerBlockPlacement(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientHeldItemChange{}
+		packet.Read(buffer)
+		server.packetHandler.HandleHeldItemChange(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientAnimation{}
+		packet.Read(buffer)
+		server.packetHandler.HandleAnimation(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientEntityAction{}
+		packet.Read(buffer)
+		server.packetHandler.HandleEntityAction(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientSteerVehicle{}
+		packet.Read(buffer)
+		server.packetHandler.HandleSteerVehicle(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientCloseWindow{}
+		packet.Read(buffer)
+		server.packetHandler.HandleCloseWindow(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientClickWindow{}
+		packet.Read(buffer)
+		server.packetHandler.HandleClickWindow(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientConfirmTransaction{}
+		packet.Read(buffer)
+		server.packetHandler.HandleConfirmTransaction(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientCreativeInventoryAction{}
+		packet.Read(buffer)
+		server.packetHandler.HandleCreativeInventoryAction(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientEnchantItem{}
+		packet.Read(buffer)
+		server.packetHandler.HandleEnchantItem(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientUpdateSign{}
+		packet.Read(buffer)
+		server.packetHandler.HandleUpdateSign(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPlayerAbilities{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePlayerAbilities(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientTabComplete{}
+		packet.Read(buffer)
+		server.packetHandler.HandleTabComplete(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientSettings{}
+		packet.Read(buffer)
+		server.packetHandler.HandleClientSettings(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientStatus{}
+		packet.Read(buffer)
+		server.packetHandler.HandleClientStatus(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientPluginMessage{}
+		packet.Read(buffer)
+		server.packetHandler.HandlePluginMessage(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientSpectate{}
+		packet.Read(buffer)
+		server.packetHandler.HandleSpectate(packet, conn.GetPlayer())
+		return true
+	})
+	table.IotaRegister(func(buffer IBuffer, conn IConnection, server *MinecraftServer) bool {
+		packet := &ClientResourcePackStatus{}
+		packet.Read(buffer)
+		server.packetHandler.HandleResourcePackStatus(packet, conn.GetPlayer())
+		return true
 	})
 }
 

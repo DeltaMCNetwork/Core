@@ -315,12 +315,20 @@ func (packet *ClientEnchantItem) GetPacketId() int {
 	return ClientEnchantItemPacket
 }
 
+func (packet *ClientEnchantItem) Read(buffer IBuffer) {
+
+}
+
 type ClientUpdateSign struct {
 	ClientPacket
 }
 
 func (packet *ClientUpdateSign) GetPacketId() int {
 	return ClientUpdateSignPacket
+}
+
+func (packet *ClientUpdateSign) Read(buffer IBuffer) {
+
 }
 
 type ClientPlayerAbilities struct {
@@ -331,12 +339,20 @@ func (packet *ClientPlayerAbilities) GetPacketId() int {
 	return ClientPlayerAbilitiesPacket
 }
 
+func (packet *ClientPlayerAbilities) Read(buffer IBuffer) {
+
+}
+
 type ClientTabComplete struct {
 	ClientPacket
 }
 
 func (packet *ClientTabComplete) GetPacketId() int {
 	return ClientTabCompletePacket
+}
+
+func (packet *ClientTabComplete) Read(buffer IBuffer) {
+
 }
 
 type ClientSettings struct {
@@ -347,12 +363,20 @@ func (packet *ClientSettings) GetPacketId() int {
 	return ClientSettingsPacket
 }
 
+func (packet *ClientSettings) Read(buffer IBuffer) {
+
+}
+
 type ClientStatus struct {
 	ClientPacket
 }
 
 func (packet *ClientStatus) GetPacketId() int {
 	return ClientStatusPacket
+}
+
+func (packet *ClientStatus) Read(buffer IBuffer) {
+
 }
 
 type ClientPluginMessage struct {
@@ -363,6 +387,10 @@ func (packet *ClientPluginMessage) GetPacketId() int {
 	return ClientPluginMessagePacket
 }
 
+func (packet *ClientPluginMessage) Read(buffer IBuffer) {
+
+}
+
 type ClientSpectate struct {
 	ClientPacket
 }
@@ -371,12 +399,20 @@ func (packet *ClientSpectate) GetPacketId() int {
 	return ClientSpectatePacket
 }
 
+func (packet *ClientSpectate) Read(buffer IBuffer) {
+
+}
+
 type ClientResourcePackStatus struct {
 	ClientPacket
 }
 
 func (packet *ClientResourcePackStatus) GetPacketId() int {
 	return ClientResourcePackPacket
+}
+
+func (packet *ClientResourcePackStatus) Read(buffer IBuffer) {
+
 }
 
 // ══════════════════════════════════════════════════════════════════════
