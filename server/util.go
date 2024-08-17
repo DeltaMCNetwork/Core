@@ -77,3 +77,17 @@ func Stringify(value string, values ...any) string {
 
 	return fmt.Sprintf(fixed, values...)
 }
+
+func AddHyphensToUUID(uuidStr string) string {
+	formatted := make([]byte, 36)
+	copy(formatted[0:8], uuidStr[0:8])
+	formatted[8] = '-'
+	copy(formatted[9:13], uuidStr[8:12])
+	formatted[13] = '-'
+	copy(formatted[14:18], uuidStr[12:16])
+	formatted[18] = '-'
+	copy(formatted[19:23], uuidStr[16:20])
+	formatted[23] = '-'
+	copy(formatted[24:36], uuidStr[20:32])
+	return string(formatted)
+}

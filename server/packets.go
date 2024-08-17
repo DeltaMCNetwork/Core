@@ -41,6 +41,9 @@ type IPacketHandler interface {
 	HandlePluginMessage(ClientPluginMessage, IPlayer)
 	HandleSpectate(ClientSpectate, IPlayer)
 	HandleResourcePackStatus(ClientResourcePackStatus, IPlayer)
+
+	SendCompleteLogin(IPlayer)
+	JoinGame(player IPlayer)
 }
 
 type BasicPacketHandler struct {
@@ -148,6 +151,14 @@ func (handler *BasicPacketHandler) HandleSpectate(packet ClientSpectate, player 
 }
 
 func (handler *BasicPacketHandler) HandleResourcePackStatus(packet ClientResourcePackStatus, player IPlayer) {
+
+}
+
+func (handler *BasicPacketHandler) SendCompleteLogin(player IPlayer, result *AuthenticationResult) {
+	player.SendPacket(CreateServerLoginSuccess(AddHyphensToUUID(result.ID), result.Name))
+}
+
+func (handler *BasicPacketHandler) JoinGame(player IPlayer) {
 
 }
 

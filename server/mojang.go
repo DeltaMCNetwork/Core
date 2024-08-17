@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-const (
-	url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username="
+const url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username="
 
-	AuthSuccess = Result(iota - 1)
+const (
+	AuthSuccess Result = iota
 	AuthFail
 	AuthError
 )
