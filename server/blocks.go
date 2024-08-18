@@ -2,7 +2,7 @@ package server
 
 type Block struct {
 	material *Material
-	state    int8
+	metadata uint16
 }
 
 func CreateBlock(mat *Material) *Block {
@@ -19,12 +19,12 @@ func (b *Block) SetMaterial(mat *Material) {
 	b.material = mat
 }
 
-func (b *Block) GetState() int8 {
-	return b.state
+func (b *Block) GetMetadata() uint16 {
+	return b.metadata
 }
 
-func (b *Block) SetState(state int8) {
-	b.state = state
+func (b *Block) SetMetadata(state uint16) {
+	b.metadata = state
 }
 
 func (b *Block) GetBlockId() int32 {

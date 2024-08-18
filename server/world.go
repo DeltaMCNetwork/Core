@@ -1,9 +1,9 @@
 package server
 
 type IWorld interface {
-	GetBlock(Vec3) *Block
-	SetBlock(Vec3, *Block)
-	GetChunk(Vec2) IChunk
+	GetBlock(BlockPos) *Block
+	SetBlock(BlockPos, *Block)
+	GetChunk(*Vec2) IChunk
 	GetGenerator() IGenerator
 	SetGenerator(IGenerator)
 	GetWorldBoarder() *WorldBorder
@@ -12,8 +12,8 @@ type IWorld interface {
 }
 
 type IChunk interface {
-	GetBlock(Vec3) *Block
-	SetBlock(Vec3, *Block)
+	GetBlock(BlockPos) *Block
+	SetBlock(BlockPos, *Block)
 }
 
 type WorldBorder struct {
@@ -97,15 +97,35 @@ func (w *WorldBorder) SetSendOnJoin(shouldSend bool) {
 }
 
 type IGenerator interface {
-	CreateChunk(Vec2) IChunk
+	CreateChunk(*Vec2) IChunk
 }
 
 type BasicWorld struct {
 	IWorld
+	generator IGenerator
+	chunks    map[Vec2]IChunk
 }
 
 func CreateBasicWorld() IWorld {
 	return &BasicWorld{}
+}
+
+func (world *BasicWorld) GetBlock(pos BlockPos) *Block {
+	chunk := world.GetChunk(CreateVec2(pos.X>>4, pos.Z>>4))
+	pos.ToChunkBlockCoords()
+
+	return chunk.GetBlock(pos)
+}
+
+func (world *BasicWorld) GetChunk(pos *Vec2) IChunk {
+	chunk, found := world.chunks[*pos]
+
+	if !found {
+		chunk = world.generator.CreateChunk(pos)
+		world.chunks[*pos] = chunk
+	}
+
+	return chunk
 }
 
 type BasicChunk struct {
@@ -114,16 +134,26 @@ type BasicChunk struct {
 	metadata []uint16
 }
 
-func (chunk *BasicChunk) GetBlock(pos Vec3) *Block {
-	index := int(pos.x + 16*pos.z + 16*16*pos.y)
+func (chunk *BasicChunk) GetBlock(pos BlockPos) *Block {
+	index := int(pos.X + 16*pos.Z + 16*16*pos.Y)
 
-	if index > 0 && index < len(chunk.blocks) {
-		return &Block{
-			material: materials.FromId(int32(chunk.blocks[index])),
-		}
+	if index > 0 && index < CHUNK_MAX_LENGTH {
+		block := materials.FromId(int32(chunk.blocks[index])).Block()
+		block.metadata = chunk.metadata[index]
+
+		return block
 	}
 
 	return nil
+}
+
+func (chunk *BasicChunk) SetBlock(pos BlockPos, block *Block) {
+	index := int(pos.X + 16*pos.Z + 16*16*pos.Y)
+
+	if index > 0 && index < CHUNK_MAX_LENGTH {
+		chunk.blocks[index] = uint16(block.GetBlockId())
+		chunk.metadata[index] = uint16(block.metadata)
+	}
 }
 
 func CreateBasicChunk() IChunk {

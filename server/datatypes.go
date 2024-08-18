@@ -137,6 +137,13 @@ type Vec2 struct {
 	y int
 }
 
+func CreateVec2(x int, y int) *Vec2 {
+	return &Vec2{
+		x: x,
+		y: y,
+	}
+}
+
 func (vec *Vec2) GetX() int {
 	return vec.x
 }
@@ -151,4 +158,25 @@ func (vec *Vec2) GetY() int {
 
 func (vec *Vec2) SetY(y int) {
 	vec.y = y
+}
+
+//Last modified: 8/17/2024
+
+type BlockPos struct {
+	X int
+	Y int
+	Z int
+}
+
+func (pos *BlockPos) ToChunkBlockCoords() {
+	pos.X %= 16
+	pos.Z %= 16
+}
+
+func CreateBlockPos(x int, y int, z int) *BlockPos {
+	return &BlockPos{
+		X: x,
+		Y: y,
+		Z: z,
+	}
 }

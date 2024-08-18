@@ -10,6 +10,7 @@ const USE_PROXY = false
 const VERIFY_TOKEN_LENGTH = 4
 const KEEPALIVE_SEND_TIME = 10
 const KEEPALIVE_TIMEOUT_TIME = 30
+const CHUNK_MAX_LENGTH = 16 * 16 * 256
 
 // no make it caps because every function from every part of the server is accessible
 // thats why i dont use vars outside of structs
