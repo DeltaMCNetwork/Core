@@ -4,16 +4,18 @@ type IWorld interface {
 	GetBlock(BlockPos) *Block
 	SetBlock(BlockPos, *Block)
 	GetChunk(*Vec2) IChunk
+	SetChunk(*Vec2, IChunk)
 	GetGenerator() IGenerator
 	SetGenerator(IGenerator)
-	GetWorldBoarder() *WorldBorder
-	SetWorldBoarder(*WorldBorder)
+	GetWorldBorder() *WorldBorder
+	SetWorldBorder(*WorldBorder)
 	GetDimension() DimensionType
 }
 
 type IChunk interface {
 	GetBlock(BlockPos) *Block
 	SetBlock(BlockPos, *Block)
+	ToBytes(*Vec2) []byte
 }
 
 type WorldBorder struct {
@@ -97,17 +99,22 @@ func (w *WorldBorder) SetSendOnJoin(shouldSend bool) {
 }
 
 type IGenerator interface {
-	CreateChunk(*Vec2) IChunk
+	CreateChunk(*Vec2, IWorld) IChunk
 }
 
 type BasicWorld struct {
 	IWorld
 	generator IGenerator
 	chunks    map[Vec2]IChunk
+	border    *WorldBorder
+	dimension DimensionType
 }
 
 func CreateBasicWorld() IWorld {
-	return &BasicWorld{}
+	return &BasicWorld{
+		generator: CreateBasicGenerator(),
+		chunks:    map[Vec2]IChunk{},
+	}
 }
 
 func (world *BasicWorld) GetBlock(pos BlockPos) *Block {
@@ -117,29 +124,64 @@ func (world *BasicWorld) GetBlock(pos BlockPos) *Block {
 	return chunk.GetBlock(pos)
 }
 
+func (world *BasicWorld) SetBlock(pos BlockPos, block *Block) {
+	chunk := world.GetChunk(CreateVec2(pos.X>>4, pos.Z>>4))
+	pos.ToChunkBlockCoords()
+
+	chunk.SetBlock(pos, block)
+}
+
+func (world *BasicWorld) GetGenerator() IGenerator {
+	return world.generator
+}
+
+func (world *BasicWorld) SetGenerator(gen IGenerator) {
+	world.generator = gen
+}
+
+func (world *BasicWorld) GetWorldBorder() *WorldBorder {
+	return world.border
+}
+
+func (world *BasicWorld) SetWorldBorder(border *WorldBorder) {
+	world.border = border
+}
+
 func (world *BasicWorld) GetChunk(pos *Vec2) IChunk {
 	chunk, found := world.chunks[*pos]
 
 	if !found {
-		chunk = world.generator.CreateChunk(pos)
+		chunk = world.generator.CreateChunk(pos, world)
 		world.chunks[*pos] = chunk
 	}
 
 	return chunk
 }
 
+func (world *BasicWorld) SetChunk(pos *Vec2, chunk IChunk) {
+	world.chunks[*pos] = chunk
+}
+
+func (world *BasicWorld) GetDimension() DimensionType {
+	return world.dimension
+}
+
+// changing chunks to be a single array with metadata in it cuz im silly
+// ref: https://github.com/SharpMC/SharpMC/blob/master/src/SharpMC.Core/Worlds/ChunkColumn.cs#L193
+// Optimization: Set the value to condense the metadata and blockid inside of the #IChunk.SetBlock()
+
 type BasicChunk struct {
 	IChunk
-	blocks   []uint16
-	metadata []uint16
+	data []uint16
 }
 
 func (chunk *BasicChunk) GetBlock(pos BlockPos) *Block {
 	index := int(pos.X + 16*pos.Z + 16*16*pos.Y)
 
 	if index > 0 && index < CHUNK_MAX_LENGTH {
-		block := materials.FromId(int32(chunk.blocks[index])).Block()
-		block.metadata = chunk.metadata[index]
+		val := chunk.data[index]
+		block := materials.FromId(int32(val >> 4)).Block()
+		block.metadata = val & 15 // messy bit operator hack
 
 		return block
 	}
@@ -151,14 +193,39 @@ func (chunk *BasicChunk) SetBlock(pos BlockPos, block *Block) {
 	index := int(pos.X + 16*pos.Z + 16*16*pos.Y)
 
 	if index > 0 && index < CHUNK_MAX_LENGTH {
-		chunk.blocks[index] = uint16(block.GetBlockId())
-		chunk.metadata[index] = uint16(block.metadata)
+		chunk.data[index] = uint16(block.GetBlockId()<<4) | block.metadata
 	}
+}
+
+func (chunk *BasicChunk) ToBytes(pos *Vec2) []byte {
+	buf := createBasicBuffer()
+
+	buf.WriteInt(int32(pos.x))
+	buf.WriteInt(int32(pos.y))
+	buf.WriteBool(true)
+	buf.WriteUInt16(0xffff)
+
+	//data len, to be changed according
+	buf.WriteVarInt(0)
+
+	return buf.GetBytes()
+
 }
 
 func CreateBasicChunk() IChunk {
 	return &BasicChunk{
-		blocks:   make([]uint16, 16*16*256),
-		metadata: make([]uint16, 16*16*256),
+		data: make([]uint16, CHUNK_MAX_LENGTH),
 	}
+}
+
+type BasicGenerator struct {
+	IGenerator
+}
+
+func CreateBasicGenerator() *BasicGenerator {
+	return &BasicGenerator{}
+}
+
+func (gen *BasicGenerator) CreateChunk(vec *Vec2, world IWorld) IChunk {
+	return nil
 }
