@@ -172,7 +172,7 @@ func (world *BasicWorld) GetDimension() DimensionType {
 
 type BasicChunk struct {
 	IChunk
-	data []uint16
+	data []uint8
 }
 
 func (chunk *BasicChunk) GetBlock(pos BlockPos) *Block {
@@ -181,7 +181,7 @@ func (chunk *BasicChunk) GetBlock(pos BlockPos) *Block {
 	if index > 0 && index < CHUNK_MAX_LENGTH {
 		val := chunk.data[index]
 		block := materials.FromId(int32(val >> 4)).Block()
-		block.metadata = val & 15 // messy bit operator hack
+		//block.metadata = val & 15 // messy bit operator hack
 
 		return block
 	}
@@ -190,10 +190,11 @@ func (chunk *BasicChunk) GetBlock(pos BlockPos) *Block {
 }
 
 func (chunk *BasicChunk) SetBlock(pos BlockPos, block *Block) {
-	index := int(pos.X + 16*pos.Z + 16*16*pos.Y)
+	index := int(pos.X+16*pos.Z+16*16*pos.Y) * 2
 
-	if index > 0 && index < CHUNK_MAX_LENGTH {
-		chunk.data[index] = uint16(block.GetBlockId()<<4) | block.metadata
+	if index > 0 && index < CHUNK_MAX_LENGTH*2 {
+		//chunk.data[index*2] = uint16(block.GetBlockId()<<4) | block.metadata
+		//chunk.data[index*2] =
 	}
 }
 
@@ -214,7 +215,7 @@ func (chunk *BasicChunk) ToBytes(pos *Vec2) []byte {
 
 func CreateBasicChunk() IChunk {
 	return &BasicChunk{
-		data: make([]uint16, CHUNK_MAX_LENGTH),
+		data: make([]uint8, CHUNK_MAX_LENGTH*2),
 	}
 }
 

@@ -25,8 +25,8 @@ func loadIcon() string {
 		panic("Failed to decode icon: " + err.Error())
 	}
 
-	if img.Bounds().Dx() != 64 || img.Bounds().Dy() != 64 {
-		// image is not 64 x 64 px
+	if img.Bounds().Dx()%64 != 0 || img.Bounds().Dy()%64 != 0 {
+		// image is not in 64x64 ratio
 		panic(fmt.Sprint("Icon should be 64 x 64 pixels. Your icon size: ", img.Bounds().Dx(), " x ", img.Bounds().Dy(), " pixels!"))
 	}
 
